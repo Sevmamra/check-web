@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Next Level Particle Engine</title>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #050505; font-family: 'Courier New', monospace; }
+        #canvas-container { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 1; }
+        video { display: none; }
+        #ui {
+            position: absolute; top: 20px; left: 20px; z-index: 2;
+            color: #00ffcc; text-shadow: 0 0 10px #00ffcc;
+            background: rgba(0, 0, 0, 0.7); padding: 20px; border: 1px solid #00ffcc;
+            border-radius: 4px; pointer-events: none;
+        }
+        h2 { margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: 2px; }
+        .status { font-weight: bold; color: #fff; }
+        .cmd { color: #ff0055; margin-right: 10px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div id="ui">
+    <h2>Quantum Core</h2>
+    <div id="status-text" class="status">System: Waiting for Hand...</div>
+    <br>
+    <div><span class="cmd">✊ FIST:</span> Black Hole (Attract)</div>
+    <div><span class="cmd">🖐 OPEN:</span> Zero Gravity (Float)</div>
+    <div><span class="cmd">👌 PINCH:</span> Repulsion Field (Explode)</div>
+    <div><span class="cmd">✌ VICTORY:</span> Turbulence (Storm)</div>
+</div>
+
+<video id="input-video"></video>
+<div id="canvas-container"></div>
+
+<script type="module">
+    import * as THREE from 'https://unpkg.com/three@0.128.0/build/three.module.js';
+    import { EffectComposer } from 'https://unpkg.com/three@0.128.0/examples/jsm/postprocessing/EffectComposer.js';
+    import { RenderPass } from 'https://unpkg.com/three@0.128.0/examples/jsm/postprocessing/RenderPass.js';
+    import { UnrealBloomPass } from 'https://unpkg.com/three@0.128.0/examples/jsm/postprocessing/UnrealBloomPass.js';
+    import { Hands } from 'https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js';
+    import { Camera } from 'https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js';
+
+    // --- 1. CORE VARIABLES ---
+    const PARTICLE_COUNT = 12000; // Heavy load
+    const CONFIG = {
+        speed: 1.5,
+        curlSize: 0.05,
+        attractionRadius: 30,
+        colors: [0x00ffcc, 0xff0055, 0xbd00ff] // Cyan, Pink, Purple
+    };
+
+    let scene, camera, renderer, composer;
+    let particles, positions, velocities, colors, life;
+    let handPos = new THREE.Vector3(9999, 9999, 9999); // Off-screen initially
+    let handState = 'IDLE'; // IDLE, FIST, OPEN, PINCH, VICTORY
+    let time = 0;
+
+    // --- 2. INITIALIZATION ---
+    function init() {
+        const container = document.getElementById('canvas-container');
+
+        // Scene
+        scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x000000, 0.02);
+
+        // Camera
+        camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 50;
+
+        // Renderer
+        renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: "high-performance" });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        container.appendChild(renderer.domElement);
+
+        // Post-Processing (BLOOM - The "Heavy" Visuals)
+        const renderScene = new RenderPass(scene, camera);
+        const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
+        bloomPass.threshold = 0;
+        bloomPass.strength = 2.0; // High intensity glow
+        bloomPass.radius = 0.5;
+
+        composer = new EffectComposer(renderer);
+        composer.addPass(renderScene);
+        composer.addPass(bloomPass);
+
+        // Create Particles
+        createParticles();
+
+        // Resize Listener
+        window.addEventListener('resize', onWindowResize, false);
+        
+        // Start Loop
+        animate();
+    }
+
+    // --- 3. PARTICLE SYSTEM (PHYSICS BASED) ---
+    function createParticles() {
+        const geometry = new THREE.BufferGeometry();
+        positions = new Float32Array(PARTICLE_COUNT * 3);
+        velocities = new Float32Array(PARTICLE_COUNT * 3);
+        colors = new Float32Array(PARTICLE_COUNT * 3);
+        life = new Float32Array(PARTICLE_COUNT); // Random offset for noise
+
+        const colorObj = new THREE.Color();
+
+        for (let i = 0; i < PARTICLE_COUNT; i++) {
+            // Random sphere distribution
+            const r = 40 * Math.cbrt(Math.random());
+            const theta = Math.random() * 2 * Math.PI;
+            const phi = Math.acos(2 * Math.random() - 1);
+
+            positions[i*3] = r * Math.sin(phi) * Math.cos(theta);
+            positions[i*3+1] = r * Math.sin(phi) * Math.sin(theta);
+            positions[i*3+2] = r * Math.cos(phi);
+
+            velocities[i*3] = (Math.random() - 0.5) * 0.1;
+            velocities[i*3+1] = (Math.random() - 0.5) * 0.1;
+            velocities[i*3+2] = (Math.random() - 0.5) * 0.1;
+
+            // Gradient Colors
+            colorObj.setHex(CONFIG.colors[Math.floor(Math.random() * CONFIG.colors.length)]);
+            colors[i*3] = colorObj.r;
+            colors[i*3+1] = colorObj.g;
+            colors[i*3+2] = colorObj.b;
+
+            life[i] = Math.random() * 100;
+        }
+
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+        // Shader Material for glowing dots
+        const material = new THREE.PointsMaterial({
+            size: 0.6,
+            vertexColors: true,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+            transparent: true,
+            opacity: 0.9
+        });
+
+        particles = new THREE.Points(geometry, material);
+        scene.add(particles);
+    }
+
+    // --- 4. PHYSICS ENGINE ---
+    // Simplex Noise Approximation for "Fluid" movement
+    function noise(x, y, z) {
+        return Math.sin(x * CONFIG.curlSize + time) * Math.cos(y * CONFIG.curlSize + time) * Math.sin(z * CONFIG.curlSize);
+    }
+
+    function updateParticles() {
+        time += 0.01;
+        const posArr = particles.geometry.attributes.position.array;
+        
+        for (let i = 0; i < PARTICLE_COUNT; i++) {
+            const idx = i * 3;
+            let px = posArr[idx];
+            let py = posArr[idx+1];
+            let pz = posArr[idx+2];
+
+            let vx = velocities[idx];
+            let vy = velocities[idx+1];
+            let vz = velocities[idx+2];
+
+            // Distance to Hand
+            const dx = handPos.x - px;
+            const dy = handPos.y - py;
+            const dz = handPos.z - pz;
+            const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
+            const forceDir = { x: dx/dist, y: dy/dist, z: dz/dist };
+
+            // --- GESTURE PHYSICS LOGIC ---
+            
+            if (handState === 'FIST') {
+                // BLACK HOLE: Strong attraction
+                const strength = 1.5; 
+                vx += forceDir.x * strength * 0.05;
+                vy += forceDir.y * strength * 0.05;
+                vz += forceDir.z * strength * 0.05;
+                // Friction for control
+                vx *= 0.90; vy *= 0.90; vz *= 0.90;
+            } 
+            else if (handState === 'PINCH') {
+                // REPULSION: Push away violently
+                if (dist < 20) {
+                    vx -= forceDir.x * 2.0;
+                    vy -= forceDir.y * 2.0;
+                    vz -= forceDir.z * 2.0;
+                }
+                vx *= 0.95; vy *= 0.95; vz *= 0.95;
+            }
+            else if (handState === 'VICTORY') {
+                // TURBULENCE: Curl Noise
+                vx += (noise(px, py, pz) - 0.5) * 0.5;
+                vy += (noise(py, pz, px) - 0.5) * 0.5;
+                vz += (noise(pz, px, py) - 0.5) * 0.5;
+                vx *= 0.96; vy *= 0.96; vz *= 0.96;
+            }
+            else if (handState === 'OPEN') {
+                // FREEZE / FLOAT: Very high friction, low movement
+                vx *= 0.85; vy *= 0.85; vz *= 0.85;
+                // Gentle float up
+                vy += 0.005; 
+            }
+            else {
+                // IDLE: Return to center slowly + slight noise
+                const centerDist = Math.sqrt(px*px + py*py + pz*pz);
+                if (centerDist > 40) {
+                    vx -= px * 0.001;
+                    vy -= py * 0.001;
+                    vz -= pz * 0.001;
+                }
+                vx += (Math.random()-0.5) * 0.02;
+                vy += (Math.random()-0.5) * 0.02;
+                vz += (Math.random()-0.5) * 0.02;
+                vx *= 0.98; vy *= 0.98; vz *= 0.98;
+            }
+
+            // Update Position
+            px += vx;
+            py += vy;
+            pz += vz;
+
+            // Save back
+            posArr[idx] = px;
+            posArr[idx+1] = py;
+            posArr[idx+2] = pz;
+            velocities[idx] = vx;
+            velocities[idx+1] = vy;
+            velocities[idx+2] = vz;
+        }
+
+        particles.geometry.attributes.position.needsUpdate = true;
+        
+        // Dynamic Rotation based on hand
+        if (handState !== 'IDLE') {
+            particles.rotation.y += (handPos.x * 0.001);
+            particles.rotation.x -= (handPos.y * 0.001);
+        } else {
+            particles.rotation.y += 0.002;
+        }
+    }
+
+    function animate() {
+        requestAnimationFrame(animate);
+        updateParticles();
+        composer.render();
+    }
+
+    function onWindowResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        composer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    // --- 5. MEDIAPIPE GESTURE RECOGNITION ---
+    const videoElement = document.getElementById('input-video');
+    const statusText = document.getElementById('status-text');
+
+    const hands = new Hands({locateFile: (file) => {
+        return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+    }});
+
+    hands.setOptions({
+        maxNumHands: 1,
+        modelComplexity: 1,
+        minDetectionConfidence: 0.7,
+        minTrackingConfidence: 0.7
+    });
+
+    hands.onResults(onHandResults);
+
+    const cameraUtils = new Camera(videoElement, {
+        onFrame: async () => { await hands.send({image: videoElement}); },
+        width: 640, height: 480
+    });
+    cameraUtils.start();
+
+    function onHandResults(results) {
+        if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+            const lm = results.multiHandLandmarks[0];
+            
+            // Map coords (Invert X for mirror feel)
+            handPos.set(
+                (0.5 - lm[9].x) * 60, // Scale to world units
+                (0.5 - lm[9].y) * 40,
+                0
+            );
+
+            detectGesture(lm);
+        } else {
+            handState = 'IDLE';
+            statusText.innerText = "System: IDLE (No Hand)";
+            handPos.set(9999,9999,9999);
+        }
+    }
+
+    function detectGesture(lm) {
+        // Calculate Finger states
+        // Tips: 8(Index), 12(Middle), 16(Ring), 20(Pinky)
+        // MCPs: 5, 9, 13, 17 (Knuckles)
+        
+        const isIndexOpen = lm[8].y < lm[6].y;
+        const isMiddleOpen = lm[12].y < lm[10].y;
+        const isRingOpen = lm[16].y < lm[14].y;
+        const isPinkyOpen = lm[20].y < lm[18].y;
+
+        // Distance Thumb(4) to Index(8)
+        const pinchDist = Math.hypot(lm[8].x - lm[4].x, lm[8].y - lm[4].y);
+
+        let newState = 'IDLE';
+
+        if (pinchDist < 0.05) {
+            newState = 'PINCH';
+        } 
+        else if (!isIndexOpen && !isMiddleOpen && !isRingOpen && !isPinkyOpen) {
+            newState = 'FIST';
+        }
+        else if (isIndexOpen && isMiddleOpen && !isRingOpen && !isPinkyOpen) {
+            newState = 'VICTORY';
+        }
+        else if (isIndexOpen && isMiddleOpen && isRingOpen && isPinkyOpen) {
+            newState = 'OPEN';
+        }
+        else {
+            newState = 'IDLE';
+        }
+
+        if (handState !== newState) {
+            handState = newState;
+            statusText.innerText = `Detected: ${handState}`;
+            statusText.style.color = getStatusColor(handState);
+        }
+    }
+
+    function getStatusColor(state) {
+        switch(state) {
+            case 'FIST': return '#ff0055'; // Red
+            case 'OPEN': return '#00ccff'; // Blue
+            case 'PINCH': return '#ffff00'; // Yellow
+            case 'VICTORY': return '#00ff00'; // Green
+            default: return '#fff';
+        }
+    }
+
+    init();
+</script>
+</body>
+</html>
