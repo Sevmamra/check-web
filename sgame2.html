@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Neon Snake Party v3</title>
+    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        /* --- GLOBAL STYLES (Cyberpunk Theme) --- */
+        * { box-sizing: border-box; touch-action: none; font-family: 'Courier New', monospace; }
+        body { margin: 0; padding: 0; background: #050505; color: #00ff00; overflow: hidden; height: 100vh; display: flex; align-items: center; justify-content: center; }
+        
+        /* UTILITIES */
+        .hidden { display: none !important; }
+        .flex-center { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .neon-box { box-shadow: 0 0 10px #00ff00, inset 0 0 10px #00ff00; border: 2px solid #00ff00; border-radius: 10px; background: rgba(0, 20, 0, 0.8); }
+        .neon-text { text-shadow: 0 0 5px #00ff00; }
+
+        /* --- HOST SCREEN (iPad) --- */
+        #host-view { width: 100%; height: 100%; }
+        
+        #setup-panel { background: #000; padding: 30px; border-radius: 20px; text-align: center; border: 1px solid #333; }
+        #qr-container { background: white; padding: 10px; border-radius: 5px; margin: 20px auto; width: 220px; }
+        
+        #game-ui { width: 100%; max-width: 600px; text-align: center; }
+        #stats-bar { display: flex; justify-content: space-between; width: 100%; padding: 0 20px; margin-bottom: 10px; font-size: 20px; font-weight: bold; }
+        
+        canvas { 
+            background: #111; 
+            border: 4px solid #00ff00; 
+            box-shadow: 0 0 30px rgba(0, 255, 0, 0.3); 
+            display: block;
+            margin: 0 auto;
+        }
+
+        /* --- REMOTE SCREEN (Mobile) --- */
+        #remote-view { width: 100%; height: 100%; background: #000; }
+        
+        .controller-grid { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr 1fr; 
+            grid-template-rows: 1fr 1fr 1fr; 
+            gap: 15px; 
+            width: 300px; 
+            height: 300px; 
+        }
+
+        .btn { 
+            width: 100%; height: 100%; 
+            border-radius: 15px; 
+            display: flex; align-items: center; justify-content: center; 
+            font-size: 40px; 
+            background: #111;
+            border: 2px solid #333;
+            color: #555;
+            transition: all 0.1s;
+        }
+
+        /* Active Button State */
+        .btn:active, .btn.pressed { 
+            background: #00ff00; 
+            color: #000; 
+            box-shadow: 0 0 20px #00ff00; 
+            border-color: #fff;
+        }
+
+        /* Positions */
+        .btn-up { grid-column: 2; grid-row: 1; }
+        .btn-left { grid-column: 1; grid-row: 2; }
+        .btn-right { grid-column: 3; grid-row: 2; }
+        .btn-down { grid-column: 2; grid-row: 3; }
+
+        /* Retry Overlay on Mobile */
+        #retry-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 10;
+        }
+        #retry-btn {
+            padding: 20px 40px;
+            font-size: 24px;
+            background: #ff0000;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 0 20px #ff0000;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+        #retry-btn:active { transform: scale(0.95); }
+
+    </style>
+</head>
+<body>
+
+    <div id="host-view" class="hidden flex-center">
+        <div id="setup-panel" class="neon-box">
+            <h1 class="neon-text">NEON SNAKE</h1>
+            <div id="qr-container"><div id="qrcode"></div></div>
+            <p>Scan to Connect Controller</p>
+            <p id="host-id-display" style="font-size: 10px; color: #666;"></p>
+        </div>
+
+        <div id="game-ui" class="hidden">
+            <div id="stats-bar">
+                <span>SCORE: <span id="score">0</span></span>
+                <span>HIGH: <span id="high-score">0</span></span>
+            </div>
+            <canvas id="gameCanvas" width="600" height="400"></canvas>
+            <p id="game-status" style="margin-top: 10px; color: #888;">Waiting for start...</p>
+        </div>
+    </div>
+
+    <div id="remote-view" class="hidden flex-center">
+        <div id="retry-overlay" class="hidden flex-center">
+            <h1 style="color: red; margin-bottom: 30px;">GAME OVER</h1>
+            <button id="retry-btn" onclick="sendRestart()">TAP TO RETRY</button>
+        </div>
+
+        <h3 style="color: #444; margin-bottom: 20px;">CONTROLLER</h3>
+        
+        <div class="controller-grid">
+            <div class="btn btn-up" data-dir="up">⬆</div>
+            <div class="btn btn-left" data-dir="left">⬅</div>
+            <div class="btn btn-right" data-dir="right">➡</div>
+            <div class="btn btn-down" data-dir="down">⬇</div>
+        </div>
+        
+        <p id="conn-status" style="margin-top: 30px; font-size: 12px; color: #444;">Searching...</p>
+    </div>
+
+    <script>
+        // --- CONFIG ---
+        const GAME_SPEED = 160; // Higher = Slower (Classic Snake Speed)
+        
+        // --- COMMON INIT ---
+        const urlParams = new URLSearchParams(window.location.search);
+        const hostIdParam = urlParams.get('hostId');
+        let peer, conn;
+
+        if (hostIdParam) initRemote(hostIdParam);
+        else initHost();
+
+        // ==========================================
+        //              HOST LOGIC
+        // ==========================================
+        let canvas, ctx, gameLoop;
+        let box = 20;
+        let snake = [];
+        let food = {};
+        let dir = "";
+        let nextDir = "";
+        let score = 0;
+        let highScore = 0;
+        let isGameOver = false;
+
+        function initHost() {
+            document.getElementById('host-view').classList.remove('hidden');
+            peer = new Peer();
+
+            peer.on('open', (id) => {
+                document.getElementById('host-id-display').innerText = id;
+                const link = `${window.location.href.split('?')[0]}?hostId=${id}`;
+                new QRCode(document.getElementById("qrcode"), { text: link, width: 200, height: 200 });
+            });
+
+            peer.on('connection', (c) => {
+                conn = c;
+                conn.on('open', () => {
+                    document.getElementById('setup-panel').classList.add('hidden');
+                    document.getElementById('game-ui').classList.remove('hidden');
+                    setupGame();
+                });
+
+                conn.on('data', (data) => {
+                    if (data === 'restart') {
+                        setupGame(); // Restart command from mobile
+                    } else {
+                        handleInput(data); // Direction command
+                    }
+                });
+            });
+        }
+
+        function setupGame() {
+            canvas = document.getElementById('gameCanvas');
+            ctx = canvas.getContext('2d');
+            
+            // Reset Variables
+            snake = [{x: 10 * box, y: 10 * box}, {x: 9 * box, y: 10 * box}, {x: 8 * box, y: 10 * box}]; // Start with length 3
+            score = 0;
+            dir = ""; 
+            nextDir = ""; 
+            isGameOver = false;
+            
+            updateScore();
+            placeFood();
+            
+            document.getElementById('game-status').innerText = "Press any button on mobile to start";
+            
+            // Inform Mobile to hide "Retry" screen
+            if(conn && conn.open) conn.send('gamestart');
+
+            if(gameLoop) clearInterval(gameLoop);
+            gameLoop = setInterval(draw, GAME_SPEED);
+        }
+
+        function handleInput(cmd) {
+            // Start game on first press
+            if (dir === "" && !isGameOver && ["left","right","up","down"].includes(cmd)) {
+                dir = cmd;
+                nextDir = cmd;
+                document.getElementById('game-status').innerText = "Playing...";
+                return;
+            }
+
+            // Prevent 180 turns
+            if (cmd === 'left' && dir !== 'right') nextDir = 'left';
+            if (cmd === 'up' && dir !== 'down') nextDir = 'up';
+            if (cmd === 'right' && dir !== 'left') nextDir = 'right';
+            if (cmd === 'down' && dir !== 'up') nextDir = 'down';
+        }
+
+        function draw() {
+            if (isGameOver) return; // Stop drawing if dead
+
+            // Update Direction
+            if (dir !== "") dir = nextDir;
+
+            // 1. Draw Background
+            ctx.fillStyle = "#050505";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // 2. Draw Food
+            ctx.fillStyle = "#ff0000";
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = "red";
+            ctx.fillRect(food.x, food.y, box, box);
+            ctx.shadowBlur = 0; // Reset shadow
+
+            // 3. Move Snake Logic
+            let snakeX = snake[0].x;
+            let snakeY = snake[0].y;
+
+            if (dir === 'left') snakeX -= box;
+            if (dir === 'up') snakeY -= box;
+            if (dir === 'right') snakeX += box;
+            if (dir === 'down') snakeY += box;
+
+            // 4. Collision Detection (Wall or Self)
+            if (dir !== "") {
+                if (snakeX < 0 || snakeX >= canvas.width || 
+                    snakeY < 0 || snakeY >= canvas.height || 
+                    collision(snakeX, snakeY)) {
+                    
+                    gameOver();
+                    return;
+                }
+            }
+
+            // 5. Eating Logic
+            if (snakeX === food.x && snakeY === food.y) {
+                score++;
+                updateScore();
+                placeFood();
+                // Vibration signal
+                if(conn && conn.open) conn.send('eat'); 
+            } else if (dir !== "") {
+                snake.pop(); // Remove tail
+            }
+
+            // 6. Draw Snake
+            if (dir !== "") {
+                let newHead = {x: snakeX, y: snakeY};
+                snake.unshift(newHead);
+            }
+
+            for (let i = 0; i < snake.length; i++) {
+                ctx.fillStyle = (i === 0) ? "#00ff00" : "#00cc00"; // Head vs Body
+                ctx.fillRect(snake[i].x, snake[i].y, box, box);
+                ctx.strokeStyle = "#000";
+                ctx.strokeRect(snake[i].x, snake[i].y, box, box);
+            }
+        }
+
+        function gameOver() {
+            isGameOver = true;
+            clearInterval(gameLoop);
+            
+            // Visuals
+            ctx.fillStyle = "rgba(0,0,0,0.7)";
+            ctx.fillRect(0,0, canvas.width, canvas.height);
+            ctx.fillStyle = "red";
+            ctx.font = "40px Courier New";
+            ctx.textAlign = "center";
+            ctx.fillText("GAME OVER", canvas.width/2, canvas.height/2);
+            
+            document.getElementById('game-status').innerText = "Check Mobile to Retry";
+
+            // Update High Score
+            if (score > highScore) highScore = score;
+            updateScore();
+
+            // Send signal to mobile
+            if(conn && conn.open) conn.send('died');
+        }
+
+        function placeFood() {
+            food = {
+                x: Math.floor(Math.random() * (canvas.width/box)) * box,
+                y: Math.floor(Math.random() * (canvas.height/box)) * box
+            };
+        }
+
+        function collision(x, y) {
+            for (let i = 0; i < snake.length; i++) {
+                if (x === snake[i].x && y === snake[i].y) return true;
+            }
+            return false;
+        }
+
+        function updateScore() {
+            document.getElementById('score').innerText = score;
+            document.getElementById('high-score').innerText = highScore;
+        }
+
+        // ==========================================
+        //              REMOTE LOGIC
+        // ==========================================
+        function initRemote(hostId) {
+            document.getElementById('remote-view').classList.remove('hidden');
+            const status = document.getElementById('conn-status');
+            
+            peer = new Peer();
+            peer.on('open', () => {
+                conn = peer.connect(hostId);
+                conn.on('open', () => {
+                    status.innerText = "CONNECTED";
+                    status.style.color = "#00ff00";
+                    setupControls();
+                });
+
+                // Listen for game events from Host
+                conn.on('data', (data) => {
+                    if (data === 'died') {
+                        navigator.vibrate([200, 100, 200]); // Long vibrate
+                        document.getElementById('retry-overlay').classList.remove('hidden');
+                    }
+                    if (data === 'eat') {
+                        navigator.vibrate(50); // Short vibrate
+                    }
+                    if (data === 'gamestart') {
+                        document.getElementById('retry-overlay').classList.add('hidden');
+                    }
+                });
+            });
+        }
+
+        function sendRestart() {
+            if (conn && conn.open) {
+                conn.send('restart');
+                // Hide overlay immediately for better feel
+                document.getElementById('retry-overlay').classList.add('hidden');
+            }
+        }
+
+        function setupControls() {
+            document.querySelectorAll('.btn').forEach(btn => {
+                btn.addEventListener('pointerdown', (e) => {
+                    e.preventDefault();
+                    btn.classList.add('pressed');
+                    if (conn && conn.open) conn.send(btn.dataset.dir);
+                    navigator.vibrate(20);
+                });
+                btn.addEventListener('pointerup', (e) => {
+                    e.preventDefault();
+                    btn.classList.remove('pressed');
+                });
+                btn.addEventListener('pointerleave', () => btn.classList.remove('pressed'));
+            });
+        }
+    </script>
+</body>
+</html>
