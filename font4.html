@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nedits Font Catalog Pro</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --secondary: #1e40af;
+            --bg: #f3f4f6;
+            --card: #ffffff;
+            --text: #1f2937;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            padding: 40px 20px;
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .dashboard {
+            background: var(--card);
+            width: 100%;
+            max-width: 850px;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 35px;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 20px;
+        }
+
+        h1 { margin: 0; font-size: 28px; color: #111827; letter-spacing: -0.5px; }
+        p { color: #6b7280; margin-top: 8px; }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+
+        .full-row { grid-column: span 2; }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input[type="text"], input[type="file"] {
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: all 0.2s;
+            background: #f9fafb;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--primary);
+            outline: none;
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        /* Modern Range Slider */
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 6px;
+            background: #e5e7eb;
+            border-radius: 5px;
+            outline: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--primary);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.1); }
+
+        .slider-value {
+            float: right;
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            padding: 18px;
+            font-size: 18px;
+            font-weight: 700;
+            border-radius: 10px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 30px;
+            box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 12px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn-primary:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        #status {
+            margin-top: 20px;
+            text-align: center;
+            font-weight: 500;
+            color: var(--secondary);
+            min-height: 24px;
+        }
+
+        .helper-text { font-size: 12px; color: #9ca3af; }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard">
+        <div class="header">
+            <h1>Font Catalog Generator</h1>
+            <p>Professional PDF Tool for Nedits Edition</p>
+        </div>
+
+        <div class="grid-container">
+            <div class="input-group full-row">
+                <label>PDF Main Title (Also File Name)</label>
+                <input type="text" id="pdfTitle" value="Mother Milk Palace Fonts" placeholder="Enter title...">
+            </div>
+
+            <div class="input-group full-row">
+                <label>Gujarati Code / Text</label>
+                <input type="text" id="sampleText" value="mDr imLc pLWs">
+            </div>
+
+            <div class="input-group">
+                <label>Text Size <span id="val-fs" class="slider-value">20</span></label>
+                <input type="range" id="fontSizeSlider" min="10" max="60" value="20" oninput="updateVal('fs', this.value)">
+                <span class="helper-text">Text bahar ja raha hai to kam karein</span>
+            </div>
+
+            <div class="input-group">
+                <label>Box Height <span id="val-rh" class="slider-value">22</span></label>
+                <input type="range" id="rowHeightSlider" min="15" max="60" value="22" oninput="updateVal('rh', this.value)">
+                <span class="helper-text">Box bada karne ke liye badhayein</span>
+            </div>
+
+            <div class="input-group">
+                <label>Footer Text</label>
+                <input type="text" id="brandName" value="Nedits Edition">
+            </div>
+
+            <div class="input-group">
+                <label>Select Fonts (.ttf only)</label>
+                <input type="file" id="fontInput" multiple accept=".ttf" style="background: white;">
+            </div>
+        </div>
+
+        <button id="generateBtn" class="btn-primary" onclick="generateProPDF()">GENERATE PDF</button>
+        <div id="status"></div>
+    </div>
+
+    <script>
+        function updateVal(id, val) {
+            document.getElementById(`val-${id}`).innerText = val;
+        }
+
+        async function generateProPDF() {
+            const { jsPDF } = window.jspdf;
+            
+            // Getting Values
+            const fileInput = document.getElementById('fontInput');
+            const sampleText = document.getElementById('sampleText').value;
+            let pdfTitle = document.getElementById('pdfTitle').value.trim();
+            const brandName = document.getElementById('brandName').value;
+            const fontSize = parseInt(document.getElementById('fontSizeSlider').value);
+            const rowHeight = parseInt(document.getElementById('rowHeightSlider').value);
+            
+            const statusDiv = document.getElementById('status');
+            const btn = document.getElementById('generateBtn');
+
+            if (!pdfTitle) pdfTitle = "Font_Catalog";
+
+            if (fileInput.files.length === 0) {
+                alert("Fonts to select karo bhai!");
+                return;
+            }
+
+            btn.disabled = true;
+            statusDiv.innerHTML = "🔄 Processing... Please wait.";
+
+            // Sorting Logic (KAP1, KAP2...)
+            let files = Array.from(fileInput.files);
+            files.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
+
+            const doc = new jsPDF();
+            const pageHeight = doc.internal.pageSize.height;
+            const pageWidth = doc.internal.pageSize.width;
+
+            // --- LAYOUT SETTINGS (UPDATED FOR MORE SPACE) ---
+            const marginX = 10; // Left/Right margin
+            
+            // New Slim Columns Logic
+            const colNo = 12;   // Bahot patla kar diya
+            const colName = 45; // Name ko bhi patla kiya
+            
+            // Preview gets ALL remaining space
+            const colPreview = pageWidth - (marginX * 2) - colNo - colName; 
+
+            let currentY = 20;
+
+            // --- HELPER FUNCTIONS ---
+
+            // Draw Header (Table Top)
+            function drawHeader(y) {
+                doc.setDrawColor(0);
+                doc.setLineWidth(0.1);
+                doc.setFillColor(240, 240, 240); // Light Gray Header Only
+                
+                // Header Background
+                doc.rect(marginX, y, pageWidth - (marginX * 2), 10, 'F');
+                doc.rect(marginX, y, pageWidth - (marginX * 2), 10, 'S'); // Border
+                
+                // Vertical Lines for Header
+                doc.line(marginX + colNo, y, marginX + colNo, y + 10);
+                doc.line(marginX + colNo + colName, y, marginX + colNo + colName, y + 10);
+
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(10);
+                doc.setTextColor(0);
+                
+                // Text
+                doc.text("No.", marginX + 2, y + 6.5);
+                doc.text("Font Name", marginX + colNo + 2, y + 6.5);
+                doc.text("Preview Result", marginX + colNo + colName + 2, y + 6.5);
+                
+                return y + 10;
+            }
+
+            // Draw Footer
+            function drawFooter(pageNo) {
+                doc.setTextColor(150);
+                doc.setFontSize(8);
+                doc.setFont("helvetica", "normal");
+                const footerText = `${brandName} | Page ${pageNo}`;
+                doc.text(footerText, pageWidth / 2, pageHeight - 10, { align: "center" });
+            }
+
+            // --- PDF START ---
+
+            // 1. Title Box Logic (New Point 3)
+            doc.setDrawColor(0);
+            doc.setLineWidth(0.5);
+            doc.rect(marginX, 10, pageWidth - (marginX * 2), 14); // Box around title
+            
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(18);
+            doc.setTextColor(0);
+            // Center Title inside Box
+            doc.text(pdfTitle, pageWidth / 2, 19, { align: "center" });
+
+            currentY = 32; // Start grid below title
+            currentY = drawHeader(currentY);
+
+            let pageCount = 1;
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const cleanName = file.name.replace(/\.[^/.]+$/, ""); 
+                const fontID = `Font_${i}`;
+
+                try {
+                    const base64 = await readFileAsBase64(file);
+                    doc.addFileToVFS(file.name, base64);
+                    doc.addFont(file.name, fontID, "normal");
+
+                    // Page Break Logic
+                    if (currentY + rowHeight > pageHeight - 15) {
+                        drawFooter(pageCount);
+                        doc.addPage();
+                        pageCount++;
+                        currentY = 20;
+                        currentY = drawHeader(currentY);
+                    }
+
+                    // --- DRAW GRID (NO ZEBRA STRIPING) ---
+                    doc.setDrawColor(200); // Light border color
+                    doc.setLineWidth(0.1);
+
+                    // Outer Rect for the whole row (Cleaner look)
+                    doc.rect(marginX, currentY, pageWidth - (marginX * 2), rowHeight);
+                    
+                    // Vertical Lines inside the row
+                    doc.line(marginX + colNo, currentY, marginX + colNo, currentY + rowHeight);
+                    doc.line(marginX + colNo + colName, currentY, marginX + colNo + colName, currentY + rowHeight);
+
+                    doc.setTextColor(0);
+                    
+                    // 1. Serial No
+                    doc.setFont("helvetica", "normal");
+                    doc.setFontSize(10);
+                    doc.text(`${i + 1}.`, marginX + 2, currentY + (rowHeight / 2) + 3);
+
+                    // 2. Font Name (Truncate if too long)
+                    let displayName = cleanName;
+                    if (displayName.length > 20) displayName = displayName.substring(0, 18) + "..";
+                    doc.text(displayName, marginX + colNo + 2, currentY + (rowHeight / 2) + 3);
+
+                    // 3. Custom Font Preview
+                    doc.setFont(fontID);
+                    doc.setFontSize(fontSize); 
+                    
+                    // Center Vertically
+                    const textY = currentY + (rowHeight / 2) + (fontSize / 3.5);
+                    
+                    // Note: User can overflow if text is huge, but we gave max space now
+                    doc.text(sampleText, marginX + colNo + colName + 2, textY);
+
+                    currentY += rowHeight;
+                    statusDiv.innerText = `Processing: ${cleanName}...`;
+
+                } catch (err) {
+                    console.error(err);
+                }
+            }
+
+            drawFooter(pageCount);
+            
+            // Save file with Title Name (New Point 2)
+            const safeFileName = pdfTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+            doc.save(`${safeFileName}.pdf`);
+            
+            statusDiv.innerHTML = "✅ <b>PDF Generated Successfully!</b>";
+            btn.disabled = false;
+        }
+
+        function readFileAsBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result.split(',')[1]);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+    </script>
+</body>
+</html>
