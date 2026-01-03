@@ -549,9 +549,14 @@
                     doc.text(displayName, marginX + colNo + 2, currentY + (rowHeight / 2) + 3);
 
                     doc.setFont(fontID);
-                    doc.setFontSize(fontSize);
-                    const textY = currentY + (rowHeight / 2) + (fontSize / 3.5);
-                    doc.text(sampleText, marginX + colNo + colName + 2, textY);
+doc.setFontSize(fontSize);
+
+// Calculate exact center of the row
+const textY = currentY + (rowHeight / 2); 
+
+// 'baseline: "middle"' forces the text to center itself vertically on that line
+doc.text(sampleText, marginX + colNo + colName + 2, textY, { baseline: "middle" });
+
 
                     currentY += rowHeight;
 
