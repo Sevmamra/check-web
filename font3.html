@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultimate Font Catalog Creator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 800px;
+        }
+        h2 { text-align: center; color: #2c3e50; margin-bottom: 30px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        
+        .grid-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .full-width { grid-column: span 2; }
+
+        .control-group {
+            margin-bottom: 15px;
+            background: #fdfdfd;
+            padding: 10px;
+            border: 1px solid #eee;
+            border-radius: 6px;
+        }
+        
+        label { display: block; margin-bottom: 8px; font-weight: 600; color: #555; font-size: 14px; }
+        
+        input[type="text"], input[type="file"], input[type="color"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        /* Range Slider Styling */
+        input[type="range"] { width: 100%; cursor: pointer; }
+        
+        .value-display {
+            float: right;
+            color: #007bff;
+            font-weight: bold;
+        }
+
+        button {
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            padding: 18px;
+            font-size: 18px;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: bold;
+            margin-top: 20px;
+            transition: transform 0.2s, background 0.3s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        button:hover { background-color: #219150; transform: translateY(-2px); }
+        button:disabled { background-color: #bdc3c7; cursor: not-allowed; transform: none; }
+        
+        #status {
+            margin-top: 20px;
+            text-align: center;
+            font-weight: bold;
+            color: #d35400;
+            min-height: 24px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>✨ Ultimate Font Catalog Generator</h2>
+        
+        <div class="grid-layout">
+            <div class="control-group">
+                <label>PDF Main Title:</label>
+                <input type="text" id="pdfTitle" value="Font Preview Sheet">
+            </div>
+
+            <div class="control-group">
+                <label>Brand Name (Footer):</label>
+                <input type="text" id="brandName" value="Mother Milk Palace - Ahmedabad">
+            </div>
+
+            <div class="control-group full-width">
+                <label>Gujarati Code / Text:</label>
+                <input type="text" id="sampleText" value="mDr imLc pLWs">
+            </div>
+
+            <div class="control-group">
+                <label>Font Size (Text Size): <span id="val-fs" class="value-display">16</span></label>
+                <input type="range" id="fontSizeSlider" min="10" max="40" value="16" oninput="updateVal('fs', this.value)">
+                <small style="color:#777;">Text bahar ja raha hai to kam karein.</small>
+            </div>
+
+            <div class="control-group">
+                <label>Row Height (Box Gap): <span id="val-rh" class="value-display">18</span></label>
+                <input type="range" id="rowHeightSlider" min="12" max="50" value="18" oninput="updateVal('rh', this.value)">
+                <small style="color:#777;">Space badhane ke liye.</small>
+            </div>
+
+            <div class="control-group">
+                <label>Header Color:</label>
+                <input type="color" id="headerColor" value="#2c3e50">
+            </div>
+
+            <div class="control-group">
+                <label>Upload Fonts (.ttf):</label>
+                <input type="file" id="fontInput" multiple accept=".ttf">
+            </div>
+        </div>
+        
+        <button id="generateBtn" onclick="generateProPDF()">Download Professional PDF</button>
+        <div id="status"></div>
+    </div>
+
+    <script>
+        // Update slider value display
+        function updateVal(id, val) {
+            document.getElementById(`val-${id}`).innerText = val;
+        }
+
+        async function generateProPDF() {
+            const { jsPDF } = window.jspdf;
+            
+            // Inputs
+            const fileInput = document.getElementById('fontInput');
+            const sampleText = document.getElementById('sampleText').value;
+            const pdfTitle = document.getElementById('pdfTitle').value;
+            const brandName = document.getElementById('brandName').value;
+            const headerColor = document.getElementById('headerColor').value;
+            
+            // Numeric Settings
+            const fontSize = parseInt(document.getElementById('fontSizeSlider').value);
+            const rowHeight = parseInt(document.getElementById('rowHeightSlider').value);
+            
+            const statusDiv = document.getElementById('status');
+            const btn = document.getElementById('generateBtn');
+
+            if (fileInput.files.length === 0) {
+                alert("Please select font files!");
+                return;
+            }
+
+            btn.disabled = true;
+            statusDiv.innerText = "⏳ Processing Fonts & Analyzing Layout...";
+
+            // Sort Files naturally (KAP1, KAP2, KAP10)
+            let files = Array.from(fileInput.files);
+            files.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
+
+            const doc = new jsPDF();
+            const pageHeight = doc.internal.pageSize.height;
+            const pageWidth = doc.internal.pageSize.width;
+
+            // Layout Constants
+            const marginX = 14;
+            const colNo = 15;
+            const colName = 70;
+            const colPreview = pageWidth - (marginX * 2) - colNo - colName; // Remaining space
+            
+            let currentY = 20;
+
+            // --- FUNCTIONS ---
+
+            // Function to hex to RGB for jsPDF
+            function hexToRgb(hex) {
+                var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+                return result ? {
+                    r: parseInt(result[1], 16),
+                    g: parseInt(result[2], 16),
+                    b: parseInt(result[3], 16)
+                } : { r: 0, g: 0, b: 0 };
+            }
+
+            const headerRGB = hexToRgb(headerColor);
+
+            // Draw Header
+            function drawHeader(y) {
+                doc.setFillColor(headerRGB.r, headerRGB.g, headerRGB.b);
+                doc.rect(marginX, y, pageWidth - (marginX * 2), 10, 'F');
+                
+                doc.setTextColor(255, 255, 255);
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(10);
+                
+                // Text vertically centered in header (y + 5 + adjust)
+                doc.text("No.", marginX + 3, y + 6.5);
+                doc.text("Font Name", marginX + colNo + 3, y + 6.5);
+                doc.text("Preview Result", marginX + colNo + colName + 3, y + 6.5);
+                
+                return y + 10;
+            }
+
+            // Draw Footer
+            function drawFooter(pageNo) {
+                doc.setTextColor(150);
+                doc.setFontSize(8);
+                doc.setFont("helvetica", "normal");
+                const footerText = `${brandName} | Page ${pageNo}`;
+                doc.text(footerText, pageWidth / 2, pageHeight - 10, { align: "center" });
+            }
+
+            // --- PDF GENERATION START ---
+
+            // Main Title
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(22);
+            doc.setTextColor(40);
+            doc.text(pdfTitle, pageWidth / 2, 22, { align: "center" });
+            
+            // Subtitle line
+            doc.setDrawColor(200);
+            doc.setLineWidth(0.5);
+            doc.line(marginX, 28, pageWidth - marginX, 28);
+
+            currentY = 35;
+            currentY = drawHeader(currentY);
+
+            let pageCount = 1;
+
+            // Loop Files
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const cleanName = file.name.replace(/\.[^/.]+$/, ""); 
+                const fontID = `Font_${i}`;
+
+                try {
+                    const base64 = await readFileAsBase64(file);
+                    doc.addFileToVFS(file.name, base64);
+                    doc.addFont(file.name, fontID, "normal");
+
+                    // Check Page Break
+                    if (currentY + rowHeight > pageHeight - 20) {
+                        drawFooter(pageCount);
+                        doc.addPage();
+                        pageCount++;
+                        currentY = 20;
+                        currentY = drawHeader(currentY);
+                    }
+
+                    // Zebra Striping (Even/Odd rows)
+                    if (i % 2 === 1) {
+                        doc.setFillColor(245, 245, 245); // Very light gray
+                        doc.rect(marginX, currentY, pageWidth - (marginX * 2), rowHeight, 'F');
+                    }
+
+                    // Draw Borders (Grid)
+                    doc.setDrawColor(220);
+                    doc.setLineWidth(0.1);
+                    doc.rect(marginX, currentY, colNo, rowHeight); // No box
+                    doc.rect(marginX + colNo, currentY, colName, rowHeight); // Name box
+                    doc.rect(marginX + colNo + colName, currentY, colPreview, rowHeight); // Preview box
+
+                    doc.setTextColor(0);
+                    
+                    // 1. Serial No
+                    doc.setFont("helvetica", "normal");
+                    doc.setFontSize(10);
+                    doc.text(`${i + 1}.`, marginX + 3, currentY + (rowHeight / 2) + 3);
+
+                    // 2. Font Name
+                    doc.text(cleanName, marginX + colNo + 3, currentY + (rowHeight / 2) + 3);
+
+                    // 3. Custom Font Preview
+                    doc.setFont(fontID);
+                    doc.setFontSize(fontSize); 
+                    
+                    // Vertical center math adjustment for custom fonts
+                    const textY = currentY + (rowHeight / 2) + (fontSize / 3.5);
+                    doc.text(sampleText, marginX + colNo + colName + 3, textY);
+
+                    currentY += rowHeight;
+                    statusDiv.innerText = `Processing: ${cleanName}...`;
+
+                } catch (err) {
+                    console.error(err);
+                }
+            }
+
+            drawFooter(pageCount);
+            doc.save("Professional_Font_Catalog.pdf");
+            statusDiv.innerText = "✅ Done! PDF Downloaded.";
+            btn.disabled = false;
+        }
+
+        function readFileAsBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result.split(',')[1]);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+    </script>
+</body>
+</html>
