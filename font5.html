@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nedits Font Catalog Ultimate</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --secondary: #1e40af;
+            --bg: #f3f4f6;
+            --card: #ffffff;
+            --text: #1f2937;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            padding: 20px;
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .main-layout {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            width: 100%;
+            max-width: 1400px;
+            justify-content: center;
+        }
+
+        /* Controls Section */
+        .dashboard {
+            background: var(--card);
+            flex: 1;
+            min-width: 350px;
+            max-width: 600px;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+            border: 1px solid rgba(0,0,0,0.05);
+            height: fit-content;
+        }
+
+        /* Preview Section */
+        .preview-container {
+            flex: 1;
+            min-width: 350px;
+            max-width: 650px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .preview-header {
+            font-weight: bold;
+            color: var(--secondary);
+            margin-bottom: 10px;
+            background: #e0e7ff;
+            padding: 8px 20px;
+            border-radius: 20px;
+        }
+
+        /* The Canvas (Paper Look) */
+        canvas {
+            background: white;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            max-width: 100%;
+            border: 1px solid #ddd;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 15px;
+        }
+
+        h1 { margin: 0; font-size: 24px; color: #111827; letter-spacing: -0.5px; }
+        p { color: #6b7280; margin-top: 5px; font-size: 14px; }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 15px;
+        }
+
+        label {
+            font-size: 12px;
+            font-weight: 700;
+            color: #374151;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input[type="text"], input[type="file"] {
+            padding: 10px 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.2s;
+            background: #f9fafb;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--primary);
+            outline: none;
+            background: #fff;
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 6px;
+            background: #e5e7eb;
+            border-radius: 5px;
+            outline: none;
+            margin-top: 5px;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            background: var(--primary);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .slider-value {
+            float: right;
+            color: var(--primary);
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--secondary);
+            margin-top: 20px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 2px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            padding: 15px;
+            font-size: 16px;
+            font-weight: 700;
+            border-radius: 10px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+            box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2);
+            transition: transform 0.1s;
+        }
+
+        .btn-primary:hover { transform: translateY(-2px); }
+        .btn-primary:disabled { background: #9ca3af; cursor: not-allowed; transform: none; }
+
+        #status {
+            margin-top: 15px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--secondary);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-layout">
+        
+        <div class="dashboard">
+            <div class="header">
+                <h1>Font Catalog Generator</h1>
+                <p>Live Editor & PDF Tool</p>
+            </div>
+
+            <div class="input-group">
+                <label>PDF Main Title</label>
+                <input type="text" id="pdfTitle" value="Mother Milk Palace Fonts" oninput="renderPreview()">
+            </div>
+
+            <div class="input-group">
+                <label>Gujarati Code / Text</label>
+                <input type="text" id="sampleText" value="mDr imLc pLWs" oninput="renderPreview()">
+            </div>
+
+            <div class="section-title">Vertical Settings</div>
+
+            <div class="input-group">
+                <label>Font Size <span id="val-fs" class="slider-value">20</span></label>
+                <input type="range" id="fontSizeSlider" min="1" max="60" value="20" oninput="updateVal('fs', this.value); renderPreview()">
+            </div>
+
+            <div class="input-group">
+                <label>Box Row Height <span id="val-rh" class="slider-value">22</span></label>
+                <input type="range" id="rowHeightSlider" min="1" max="60" value="22" oninput="updateVal('rh', this.value); renderPreview()">
+            </div>
+
+            <div class="section-title">Horizontal Settings (Column Widths)</div>
+
+            <div class="input-group">
+                <label>"No." Column Width <span id="val-cw1" class="slider-value">12</span></label>
+                <input type="range" id="colNoSlider" min="5" max="40" value="12" oninput="updateVal('cw1', this.value); renderPreview()">
+            </div>
+
+            <div class="input-group">
+                <label>"Name" Column Width <span id="val-cw2" class="slider-value">45</span></label>
+                <input type="range" id="colNameSlider" min="20" max="100" value="45" oninput="updateVal('cw2', this.value); renderPreview()">
+            </div>
+
+            <div class="section-title">Final Details</div>
+
+            <div class="input-group">
+                <label>Footer Text</label>
+                <input type="text" id="brandName" value="Nedits Edition" oninput="renderPreview()">
+            </div>
+
+            <div class="input-group">
+                <label>Select Fonts (.ttf)</label>
+                <input type="file" id="fontInput" multiple accept=".ttf" onchange="handleFileSelect()">
+            </div>
+
+            <button id="generateBtn" class="btn-primary" onclick="generateProPDF()">DOWNLOAD PDF</button>
+            <div id="status"></div>
+        </div>
+
+        <div class="preview-container">
+            <div class="preview-header">LIVE PAGE PREVIEW</div>
+            <canvas id="previewCanvas"></canvas>
+        </div>
+
+    </div>
+
+    <script>
+        // Global variables for fonts
+        let loadedFonts = []; 
+        const canvas = document.getElementById('previewCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Setup Canvas Resolution (A4 aspect ratio: 210mm x 297mm)
+        // High DPI for crisp text
+        const scaleFactor = 3; // Zoom level for canvas
+        const mmToPx = 3.7795275591; // 1mm in pixels (96 DPI standard)
+        
+        // Canvas pixel dimensions
+        const pdfWidthMM = 210;
+        const pdfHeightMM = 297;
+        
+        canvas.width = pdfWidthMM * mmToPx * scaleFactor;
+        canvas.height = pdfHeightMM * mmToPx * scaleFactor;
+        
+        // Fit on screen via CSS
+        canvas.style.width = "400px"; 
+        canvas.style.height = "auto";
+
+        function updateVal(id, val) {
+            document.getElementById(`val-${id}`).innerText = val;
+        }
+
+        // 1. Handle File Upload & Load Fonts into Browser for Preview
+        async function handleFileSelect() {
+            const fileInput = document.getElementById('fontInput');
+            const statusDiv = document.getElementById('status');
+            
+            if (fileInput.files.length === 0) return;
+
+            statusDiv.innerText = "Loading Fonts for Preview...";
+            loadedFonts = []; // Reset list
+
+            const files = Array.from(fileInput.files);
+            // Sort files numerically
+            files.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
+
+            // Limit preview loading to first 15 fonts to prevent crashing if user selects 200
+            const previewLimit = Math.min(files.length, 15);
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                loadedFonts.push({ file: file, name: file.name.replace(/\.[^/.]+$/, "") });
+
+                // Only load font-face for the preview limit
+                if (i < previewLimit) {
+                    try {
+                        const arrayBuffer = await file.arrayBuffer();
+                        const fontName = `PreviewFont_${i}`;
+                        const fontFace = new FontFace(fontName, arrayBuffer);
+                        await fontFace.load();
+                        document.fonts.add(fontFace);
+                        loadedFonts[i].fontFamily = fontName; // Save referencing name
+                    } catch (e) {
+                        console.error("Font load error", e);
+                    }
+                }
+            }
+            
+            statusDiv.innerText = `Loaded ${files.length} fonts. (Previewing first ${previewLimit})`;
+            renderPreview();
+        }
+
+        // 2. RENDER THE PREVIEW ON CANVAS
+        function renderPreview() {
+            // Clear Canvas
+            ctx.fillStyle = "white";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Get current inputs
+            const pdfTitle = document.getElementById('pdfTitle').value || "Font Catalog";
+            const sampleText = document.getElementById('sampleText').value;
+            const brandName = document.getElementById('brandName').value;
+            
+            const fontSize = parseInt(document.getElementById('fontSizeSlider').value);
+            const rowHeight = parseInt(document.getElementById('rowHeightSlider').value);
+            const colNo = parseInt(document.getElementById('colNoSlider').value);
+            const colName = parseInt(document.getElementById('colNameSlider').value);
+
+            // Helpers for coordinate conversion (mm -> canvas px)
+            const mm = (val) => val * mmToPx * scaleFactor;
+            
+            const marginX = mm(10);
+            const pageWidth = canvas.width;
+            
+            // Draw Main Title Box
+            ctx.strokeStyle = "black";
+            ctx.lineWidth = 1 * scaleFactor;
+            ctx.strokeRect(marginX, mm(10), pageWidth - (marginX * 2), mm(14));
+            
+            // Draw Title Text
+            ctx.fillStyle = "black";
+            ctx.font = `bold ${mm(6)}px Helvetica`; // Approx pt size conversion
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(pdfTitle, pageWidth / 2, mm(17));
+
+            // Grid Header Setup
+            let currentY = mm(32);
+            const rowH_px = mm(rowHeight);
+            
+            // Draw Header Function (Canvas version)
+            function drawCanvasHeader(y) {
+                ctx.fillStyle = "#f0f0f0";
+                ctx.fillRect(marginX, y, pageWidth - (marginX * 2), mm(10));
+                ctx.strokeRect(marginX, y, pageWidth - (marginX * 2), mm(10)); // Border
+                
+                // Vertical Lines
+                ctx.beginPath();
+                ctx.moveTo(marginX + mm(colNo), y);
+                ctx.lineTo(marginX + mm(colNo), y + mm(10));
+                ctx.moveTo(marginX + mm(colNo) + mm(colName), y);
+                ctx.lineTo(marginX + mm(colNo) + mm(colName), y + mm(10));
+                ctx.stroke();
+
+                // Text
+                ctx.fillStyle = "black";
+                ctx.font = `bold ${mm(3.5)}px Helvetica`;
+                ctx.textAlign = "left";
+                ctx.fillText("No.", marginX + mm(2), y + mm(6));
+                ctx.fillText("Font Name", marginX + mm(colNo) + mm(2), y + mm(6));
+                ctx.fillText("Preview Result", marginX + mm(colNo) + mm(colName) + mm(2), y + mm(6));
+
+                return y + mm(10);
+            }
+
+            currentY = drawCanvasHeader(currentY);
+
+            // Loop through loaded fonts (Preview only shows first few)
+            const previewCount = Math.min(loadedFonts.length, 12); // Fit on one page roughly
+
+            if (loadedFonts.length === 0) {
+                // Placeholder if no fonts loaded
+                ctx.fillStyle = "#999";
+                ctx.textAlign = "center";
+                ctx.fillText("Upload fonts to see preview here...", pageWidth / 2, mm(60));
+                return;
+            }
+
+            for (let i = 0; i < previewCount; i++) {
+                const font = loadedFonts[i];
+                
+                // Draw Row Box
+                ctx.strokeStyle = "#ccc";
+                ctx.lineWidth = 0.5 * scaleFactor;
+                ctx.strokeRect(marginX, currentY, pageWidth - (marginX * 2), rowH_px);
+                
+                // Vertical Lines
+                ctx.beginPath();
+                ctx.moveTo(marginX + mm(colNo), currentY);
+                ctx.lineTo(marginX + mm(colNo), currentY + rowH_px);
+                ctx.moveTo(marginX + mm(colNo) + mm(colName), currentY);
+                ctx.lineTo(marginX + mm(colNo) + mm(colName), currentY + rowH_px);
+                ctx.stroke();
+
+                // 1. Serial No
+                ctx.fillStyle = "black";
+                ctx.font = `${mm(3.5)}px Helvetica`;
+                ctx.textAlign = "left";
+                ctx.fillText(`${i + 1}.`, marginX + mm(2), currentY + (rowH_px / 2) + mm(1));
+
+                // 2. Font Name
+                let dName = font.name;
+                if (dName.length > 15) dName = dName.substring(0, 15) + "..";
+                ctx.fillText(dName, marginX + mm(colNo) + mm(2), currentY + (rowH_px / 2) + mm(1));
+
+                // 3. Custom Font Preview
+                if (font.fontFamily) {
+                    // Use loaded custom font
+                    // Canvas font size needs to be adjusted. PDF pt size vs Canvas px
+                    // Heuristic: font size slider * scale * magic number
+                    ctx.font = `${fontSize * scaleFactor * 1.3}px "${font.fontFamily}"`;
+                    ctx.fillText(sampleText, marginX + mm(colNo) + mm(colName) + mm(2), currentY + (rowH_px / 2) + (fontSize * scaleFactor * 0.4));
+                } else {
+                    ctx.font = `${mm(4)}px Helvetica`;
+                    ctx.fillStyle = "red";
+                    ctx.fillText("Loading...", marginX + mm(colNo) + mm(colName) + mm(2), currentY + (rowH_px / 2));
+                }
+
+                currentY += rowH_px;
+            }
+
+            // Footer
+            ctx.fillStyle = "#999";
+            ctx.font = `${mm(3)}px Helvetica`;
+            ctx.textAlign = "center";
+            ctx.fillText(`${brandName} | Preview Mode`, pageWidth / 2, canvas.height - mm(10));
+        }
+
+
+        // 3. GENERATE ACTUAL PDF (Original Logic maintained)
+        async function generateProPDF() {
+            const { jsPDF } = window.jspdf;
+            const btn = document.getElementById('generateBtn');
+            const statusDiv = document.getElementById('status');
+            
+            // Get inputs again
+            const fileInput = document.getElementById('fontInput');
+            const pdfTitle = document.getElementById('pdfTitle').value || "Font Catalog";
+            const sampleText = document.getElementById('sampleText').value;
+            const brandName = document.getElementById('brandName').value;
+            const fontSize = parseInt(document.getElementById('fontSizeSlider').value);
+            const rowHeight = parseInt(document.getElementById('rowHeightSlider').value);
+            const colNo = parseInt(document.getElementById('colNoSlider').value);
+            const colName = parseInt(document.getElementById('colNameSlider').value);
+
+            if (fileInput.files.length === 0) { alert("Fonts select karo!"); return; }
+
+            btn.disabled = true;
+            statusDiv.innerHTML = "Generating Full PDF...";
+
+            let files = Array.from(fileInput.files);
+            files.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
+
+            const doc = new jsPDF();
+            const pageHeight = doc.internal.pageSize.height;
+            const pageWidth = doc.internal.pageSize.width;
+            const marginX = 10;
+            const colPreview = pageWidth - (marginX * 2) - colNo - colName; 
+
+            // PDF Helper Functions
+            function drawHeader(y) {
+                doc.setDrawColor(0);
+                doc.setLineWidth(0.1);
+                doc.setFillColor(240, 240, 240);
+                doc.rect(marginX, y, pageWidth - (marginX * 2), 10, 'F');
+                doc.rect(marginX, y, pageWidth - (marginX * 2), 10, 'S');
+                doc.line(marginX + colNo, y, marginX + colNo, y + 10);
+                doc.line(marginX + colNo + colName, y, marginX + colNo + colName, y + 10);
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(10);
+                doc.setTextColor(0);
+                doc.text("No.", marginX + 2, y + 6.5);
+                doc.text("Font Name", marginX + colNo + 2, y + 6.5);
+                doc.text("Preview Result", marginX + colNo + colName + 2, y + 6.5);
+                return y + 10;
+            }
+
+            function drawFooter(pageNo) {
+                doc.setTextColor(150);
+                doc.setFontSize(8);
+                doc.setFont("helvetica", "normal");
+                doc.text(`${brandName} | Page ${pageNo}`, pageWidth / 2, pageHeight - 10, { align: "center" });
+            }
+
+            function readFileAsBase64(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result.split(',')[1]);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            // PDF Content
+            doc.setDrawColor(0);
+            doc.setLineWidth(0.5);
+            doc.rect(marginX, 10, pageWidth - (marginX * 2), 14);
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(18);
+            doc.setTextColor(0);
+            doc.text(pdfTitle, pageWidth / 2, 19, { align: "center" });
+
+            let currentY = 32;
+            currentY = drawHeader(currentY);
+            let pageCount = 1;
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const cleanName = file.name.replace(/\.[^/.]+$/, ""); 
+                const fontID = `Font_${i}`;
+
+                try {
+                    const base64 = await readFileAsBase64(file);
+                    doc.addFileToVFS(file.name, base64);
+                    doc.addFont(file.name, fontID, "normal");
+
+                    if (currentY + rowHeight > pageHeight - 15) {
+                        drawFooter(pageCount);
+                        doc.addPage();
+                        pageCount++;
+                        currentY = 20;
+                        currentY = drawHeader(currentY);
+                    }
+
+                    doc.setDrawColor(200);
+                    doc.setLineWidth(0.1);
+                    doc.rect(marginX, currentY, pageWidth - (marginX * 2), rowHeight);
+                    doc.line(marginX + colNo, currentY, marginX + colNo, currentY + rowHeight);
+                    doc.line(marginX + colNo + colName, currentY, marginX + colNo + colName, currentY + rowHeight);
+
+                    doc.setTextColor(0);
+                    doc.setFont("helvetica", "normal");
+                    doc.setFontSize(10);
+                    doc.text(`${i + 1}.`, marginX + 2, currentY + (rowHeight / 2) + 3);
+
+                    let displayName = cleanName;
+                    const maxChars = Math.floor(colName / 2.5);
+                    if (displayName.length > maxChars) displayName = displayName.substring(0, maxChars) + "..";
+                    doc.text(displayName, marginX + colNo + 2, currentY + (rowHeight / 2) + 3);
+
+                    doc.setFont(fontID);
+                    doc.setFontSize(fontSize);
+                    const textY = currentY + (rowHeight / 2) + (fontSize / 3.5);
+                    doc.text(sampleText, marginX + colNo + colName + 2, textY);
+
+                    currentY += rowHeight;
+
+                } catch (err) { console.error(err); }
+            }
+
+            drawFooter(pageCount);
+            const safeFileName = pdfTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+            doc.save(`${safeFileName}.pdf`);
+            
+            statusDiv.innerHTML = "✅ PDF Downloaded!";
+            btn.disabled = false;
+        }
+
+        // Initialize empty preview on load
+        window.onload = renderPreview;
+    </script>
+</body>
+</html>
