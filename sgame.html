@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Snake Party Ultimate</title>
+    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        /* General Reset */
+        * { box-sizing: border-box; touch-action: none; /* ROKO SCROLLING KO */ }
+        body { margin: 0; padding: 0; background: #121212; color: white; font-family: sans-serif; overflow: hidden; height: 100vh; display: flex; align-items: center; justify-content: center; }
+
+        /* HOST SCREEN (iPad) */
+        #host-view { display: none; text-align: center; width: 100%; height: 100%; flex-direction: column; align-items: center; justify-content: center; }
+        .visible { display: flex !important; }
+        
+        #qr-box { background: white; padding: 15px; border-radius: 10px; margin-bottom: 20px; }
+        canvas { background: #222; border: 2px solid #555; display: none; margin-top: 20px; box-shadow: 0 0 30px rgba(0,255,0,0.2); }
+        
+        #status-msg { color: #aaa; margin-top: 10px; font-size: 14px; }
+        #debug-log { position: absolute; top: 10px; left: 10px; color: yellow; font-family: monospace; font-size: 12px; }
+        #score-display { font-size: 24px; font-weight: bold; color: #0f0; display: none; }
+
+        /* REMOTE SCREEN (Mobile) */
+        #remote-view { display: none; width: 100%; height: 100%; flex-direction: column; align-items: center; justify-content: center; background: #1a1a1a; }
+        
+        .controller-area { 
+            display: grid; 
+            grid-template-columns: 90px 90px 90px; 
+            grid-template-rows: 90px 90px 90px; 
+            gap: 15px; 
+        }
+
+        .btn { 
+            width: 100%; height: 100%; 
+            background: #333; 
+            border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center; 
+            font-size: 30px; 
+            border: 3px solid #555;
+            transition: background 0.1s;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        /* Press Effect */
+        .btn.pressed { background: #00ff00 !important; color: black; border-color: #00ff00; }
+
+        .btn-up { grid-column: 2; grid-row: 1; }
+        .btn-left { grid-column: 1; grid-row: 2; }
+        .btn-right { grid-column: 3; grid-row: 2; }
+        .btn-down { grid-column: 2; grid-row: 3; }
+
+    </style>
+</head>
+<body>
+
+    <div id="debug-log">Status: Initializing...</div>
+
+    <div id="host-view">
+        <h1>SNAKE PARTY</h1>
+        <div id="setup-panel">
+            <div id="qr-box"><div id="qrcode"></div></div>
+            <p>Mobile se QR Scan karo</p>
+            <p id="host-id-display" style="font-size:10px; color:#555;"></p>
+        </div>
+        
+        <div id="score-display">Score: 0</div>
+        <canvas id="gameCanvas" width="600" height="400"></canvas>
+    </div>
+
+    <div id="remote-view">
+        <h2 style="margin-bottom: 40px; color: #aaa;">CONTROLLER</h2>
+        <div class="controller-area">
+            <div class="btn btn-up" data-dir="up">⬆️</div>
+            <div class="btn btn-left" data-dir="left">⬅️</div>
+            <div class="btn btn-right" data-dir="right">➡️</div>
+            <div class="btn btn-down" data-dir="down">⬇️</div>
+        </div>
+        <p id="remote-status" style="margin-top: 30px; color: yellow; font-size: 12px;">Connecting...</p>
+    </div>
+
+    <script>
+        // --- LOGIC START ---
+        const urlParams = new URLSearchParams(window.location.search);
+        const hostIdParam = urlParams.get('hostId');
+        let peer, conn;
+        
+        // Debug Helper
+        function log(msg) {
+            document.getElementById('debug-log').innerText = "Log: " + msg;
+            console.log(msg);
+        }
+
+        // --- CHECK ROLE ---
+        if (hostIdParam) {
+            initRemote(hostIdParam);
+        } else {
+            initHost();
+        }
+
+        // ==========================
+        // HOST CODE (iPad)
+        // ==========================
+        function initHost() {
+            document.getElementById('host-view').classList.add('visible');
+            peer = new Peer();
+
+            peer.on('open', (id) => {
+                log("Host ID Generated");
+                document.getElementById('host-id-display').innerText = id;
+                
+                // QR Generate
+                const link = `${window.location.href.split('?')[0]}?hostId=${id}`;
+                new QRCode(document.getElementById("qrcode"), { text: link, width: 180, height: 180 });
+            });
+
+            peer.on('connection', (c) => {
+                conn = c;
+                document.getElementById('setup-panel').style.display = 'none';
+                document.getElementById('gameCanvas').style.display = 'block';
+                document.getElementById('score-display').style.display = 'block';
+                log("PLAYER CONNECTED!");
+                
+                // Start Game Logic
+                initGame();
+
+                // Listen for Data
+                conn.on('data', (data) => {
+                    log("Received Command: " + data); // Debugging Visual
+                    handleInput(data);
+                });
+
+                conn.on('close', () => {
+                    alert("Controller disconnected");
+                    location.reload();
+                });
+            });
+        }
+
+        // --- GAME ENGINE ---
+        let canvas, ctx, gameInterval;
+        let box = 20;
+        let snake = [];
+        let food = {};
+        let direction = ""; // Current moving direction
+        let nextDirection = ""; // Input buffer
+        let score = 0;
+
+        function initGame() {
+            canvas = document.getElementById('gameCanvas');
+            ctx = canvas.getContext('2d');
+            
+            // Reset state
+            snake = [{x: 10 * box, y: 10 * box}];
+            score = 0;
+            direction = "";
+            nextDirection = "";
+            placeFood();
+            
+            if(gameInterval) clearInterval(gameInterval);
+            gameInterval = setInterval(drawGame, 100); // 10 FPS
+        }
+
+        function placeFood() {
+            food = {
+                x: Math.floor(Math.random() * (canvas.width/box)) * box,
+                y: Math.floor(Math.random() * (canvas.height/box)) * box
+            };
+        }
+
+        function handleInput(cmd) {
+            // Prevent 180 degree turns
+            if (cmd === 'left' && direction !== 'right') nextDirection = 'left';
+            if (cmd === 'up' && direction !== 'down') nextDirection = 'up';
+            if (cmd === 'right' && direction !== 'left') nextDirection = 'right';
+            if (cmd === 'down' && direction !== 'up') nextDirection = 'down';
+            
+            // Start game on first keypress if static
+            if (direction === "" && nextDirection !== "") direction = nextDirection;
+        }
+
+        function drawGame() {
+            // Update direction from buffer
+            if (nextDirection) direction = nextDirection;
+
+            // Clear Screen
+            ctx.fillStyle = "#222";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw Snake
+            for (let i = 0; i < snake.length; i++) {
+                ctx.fillStyle = (i === 0) ? "#00ff00" : "#00aa00";
+                ctx.fillRect(snake[i].x, snake[i].y, box, box);
+                ctx.strokeStyle = "#111";
+                ctx.strokeRect(snake[i].x, snake[i].y, box, box);
+            }
+
+            // Draw Food
+            ctx.fillStyle = "red";
+            ctx.fillRect(food.x, food.y, box, box);
+
+            // Move Snake logic
+            let snakeX = snake[0].x;
+            let snakeY = snake[0].y;
+
+            if (direction === "") return; // Don't move until first press
+
+            if (direction === 'left') snakeX -= box;
+            if (direction === 'up') snakeY -= box;
+            if (direction === 'right') snakeX += box;
+            if (direction === 'down') snakeY += box;
+
+            // Collision Detection
+            if (snakeX < 0 || snakeX >= canvas.width || 
+                snakeY < 0 || snakeY >= canvas.height || 
+                collision(snakeX, snakeY)) {
+                
+                clearInterval(gameInterval);
+                log("GAME OVER");
+                alert("Game Over! Score: " + score);
+                initGame(); // Restart automatically
+                return;
+            }
+
+            // Eat Food
+            if (snakeX === food.x && snakeY === food.y) {
+                score++;
+                document.getElementById('score-display').innerText = "Score: " + score;
+                placeFood();
+            } else {
+                snake.pop(); // Remove tail
+            }
+
+            // Add new Head
+            snake.unshift({x: snakeX, y: snakeY});
+        }
+
+        function collision(x, y) {
+            for (let i = 0; i < snake.length; i++) {
+                if (x === snake[i].x && y === snake[i].y) return true;
+            }
+            return false;
+        }
+
+        // ==========================
+        // REMOTE CODE (Mobile)
+        // ==========================
+        function initRemote(hostId) {
+            document.getElementById('remote-view').classList.add('visible');
+            const status = document.getElementById('remote-status');
+            
+            peer = new Peer();
+            peer.on('open', () => {
+                conn = peer.connect(hostId);
+                
+                conn.on('open', () => {
+                    status.innerText = "CONNECTED! PRESS BUTTONS";
+                    status.style.color = "#00ff00";
+                    setupControls();
+                });
+
+                conn.on('error', (err) => {
+                    status.innerText = "Error: " + err;
+                });
+            });
+        }
+
+        function setupControls() {
+            const buttons = document.querySelectorAll('.btn');
+            
+            buttons.forEach(btn => {
+                // Using POINTER events covers both Touch and Mouse
+                btn.addEventListener('pointerdown', (e) => {
+                    e.preventDefault(); // Stop scrolling
+                    btn.classList.add('pressed');
+                    const dir = btn.getAttribute('data-dir');
+                    
+                    if (conn && conn.open) {
+                        conn.send(dir);
+                        if (navigator.vibrate) navigator.vibrate(20);
+                    }
+                });
+
+                btn.addEventListener('pointerup', (e) => {
+                    e.preventDefault();
+                    btn.classList.remove('pressed');
+                });
+                
+                // Safety cleanup if finger slides off
+                btn.addEventListener('pointerleave', () => btn.classList.remove('pressed'));
+            });
+        }
+
+    </script>
+</body>
+</html>
