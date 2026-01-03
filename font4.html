@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nedits Font Catalog Pro</title>
+    <title>Nedits Font Catalog Ultimate</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         :root {
@@ -28,7 +28,7 @@
         .dashboard {
             background: var(--card);
             width: 100%;
-            max-width: 850px;
+            max-width: 900px;
             padding: 40px;
             border-radius: 16px;
             box-shadow: 0 10px 40px rgba(0,0,0,0.08);
@@ -53,6 +53,16 @@
 
         .full-row { grid-column: span 2; }
 
+        .section-title {
+            grid-column: span 2;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--secondary);
+            margin-top: 15px;
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 5px;
+        }
+
         .input-group {
             display: flex;
             flex-direction: column;
@@ -60,7 +70,7 @@
         }
 
         label {
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 600;
             color: #374151;
             text-transform: uppercase;
@@ -87,19 +97,21 @@
         input[type="range"] {
             -webkit-appearance: none;
             width: 100%;
-            height: 6px;
+            height: 8px;
             background: #e5e7eb;
             border-radius: 5px;
             outline: none;
+            margin-top: 5px;
         }
         input[type="range"]::-webkit-slider-thumb {
             -webkit-appearance: none;
-            width: 20px;
-            height: 20px;
+            width: 22px;
+            height: 22px;
             background: var(--primary);
             border-radius: 50%;
             cursor: pointer;
             transition: transform 0.1s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
         input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.1); }
 
@@ -107,6 +119,7 @@
             float: right;
             color: var(--primary);
             font-weight: bold;
+            font-size: 14px;
         }
 
         .btn-primary {
@@ -143,7 +156,7 @@
             min-height: 24px;
         }
 
-        .helper-text { font-size: 12px; color: #9ca3af; }
+        .helper-text { font-size: 11px; color: #9ca3af; margin-top: 2px; }
     </style>
 </head>
 <body>
@@ -151,7 +164,7 @@
     <div class="dashboard">
         <div class="header">
             <h1>Font Catalog Generator</h1>
-            <p>Professional PDF Tool for Nedits Edition</p>
+            <p>Ultimate Control Dashboard for Nedits Edition</p>
         </div>
 
         <div class="grid-container">
@@ -165,17 +178,35 @@
                 <input type="text" id="sampleText" value="mDr imLc pLWs">
             </div>
 
+            <div class="section-title">Vertical Settings (Height & Size)</div>
+
             <div class="input-group">
-                <label>Text Size <span id="val-fs" class="slider-value">20</span></label>
-                <input type="range" id="fontSizeSlider" min="10" max="60" value="20" oninput="updateVal('fs', this.value)">
-                <span class="helper-text">Text bahar ja raha hai to kam karein</span>
+                <label>Font Size <span id="val-fs" class="slider-value">20</span></label>
+                <input type="range" id="fontSizeSlider" min="1" max="60" value="20" oninput="updateVal('fs', this.value)">
+                <span class="helper-text">Range: 1 to 60</span>
             </div>
 
             <div class="input-group">
-                <label>Box Height <span id="val-rh" class="slider-value">22</span></label>
-                <input type="range" id="rowHeightSlider" min="15" max="60" value="22" oninput="updateVal('rh', this.value)">
-                <span class="helper-text">Box bada karne ke liye badhayein</span>
+                <label>Box Row Height <span id="val-rh" class="slider-value">22</span></label>
+                <input type="range" id="rowHeightSlider" min="1" max="60" value="22" oninput="updateVal('rh', this.value)">
+                <span class="helper-text">Range: 1 to 60</span>
             </div>
+
+            <div class="section-title">Horizontal Settings (Column Widths)</div>
+
+            <div class="input-group">
+                <label>"No." Column Width <span id="val-cw1" class="slider-value">12</span></label>
+                <input type="range" id="colNoSlider" min="5" max="40" value="12" oninput="updateVal('cw1', this.value)">
+                <span class="helper-text">Serial number box width (mm)</span>
+            </div>
+
+            <div class="input-group">
+                <label>"Name" Column Width <span id="val-cw2" class="slider-value">45</span></label>
+                <input type="range" id="colNameSlider" min="20" max="100" value="45" oninput="updateVal('cw2', this.value)">
+                <span class="helper-text">Font name box width (mm)</span>
+            </div>
+
+            <div class="section-title">Final Details</div>
 
             <div class="input-group">
                 <label>Footer Text</label>
@@ -205,8 +236,12 @@
             const sampleText = document.getElementById('sampleText').value;
             let pdfTitle = document.getElementById('pdfTitle').value.trim();
             const brandName = document.getElementById('brandName').value;
+            
+            // Numeric Values
             const fontSize = parseInt(document.getElementById('fontSizeSlider').value);
             const rowHeight = parseInt(document.getElementById('rowHeightSlider').value);
+            const colNo = parseInt(document.getElementById('colNoSlider').value);
+            const colName = parseInt(document.getElementById('colNameSlider').value);
             
             const statusDiv = document.getElementById('status');
             const btn = document.getElementById('generateBtn');
@@ -221,7 +256,7 @@
             btn.disabled = true;
             statusDiv.innerHTML = "🔄 Processing... Please wait.";
 
-            // Sorting Logic (KAP1, KAP2...)
+            // Sorting Logic
             let files = Array.from(fileInput.files);
             files.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
 
@@ -229,31 +264,30 @@
             const pageHeight = doc.internal.pageSize.height;
             const pageWidth = doc.internal.pageSize.width;
 
-            // --- LAYOUT SETTINGS (UPDATED FOR MORE SPACE) ---
-            const marginX = 10; // Left/Right margin
+            // --- LAYOUT CALCULATIONS ---
+            const marginX = 10; // Fixed margin
             
-            // New Slim Columns Logic
-            const colNo = 12;   // Bahot patla kar diya
-            const colName = 45; // Name ko bhi patla kiya
-            
-            // Preview gets ALL remaining space
+            // Calculate Preview width automatically based on sliders
             const colPreview = pageWidth - (marginX * 2) - colNo - colName; 
+
+            // Safety check: If columns are too wide, warn user or clip
+            if (colPreview < 10) {
+                alert("Warning: Columns are too wide! Text area is vanishing.");
+            }
 
             let currentY = 20;
 
-            // --- HELPER FUNCTIONS ---
-
-            // Draw Header (Table Top)
+            // --- DRAW HELPER ---
             function drawHeader(y) {
                 doc.setDrawColor(0);
                 doc.setLineWidth(0.1);
-                doc.setFillColor(240, 240, 240); // Light Gray Header Only
+                doc.setFillColor(240, 240, 240); 
                 
                 // Header Background
                 doc.rect(marginX, y, pageWidth - (marginX * 2), 10, 'F');
-                doc.rect(marginX, y, pageWidth - (marginX * 2), 10, 'S'); // Border
+                doc.rect(marginX, y, pageWidth - (marginX * 2), 10, 'S'); 
                 
-                // Vertical Lines for Header
+                // Dynamic Vertical Lines
                 doc.line(marginX + colNo, y, marginX + colNo, y + 10);
                 doc.line(marginX + colNo + colName, y, marginX + colNo + colName, y + 10);
 
@@ -269,7 +303,6 @@
                 return y + 10;
             }
 
-            // Draw Footer
             function drawFooter(pageNo) {
                 doc.setTextColor(150);
                 doc.setFontSize(8);
@@ -278,20 +311,19 @@
                 doc.text(footerText, pageWidth / 2, pageHeight - 10, { align: "center" });
             }
 
-            // --- PDF START ---
-
-            // 1. Title Box Logic (New Point 3)
+            // --- PDF GENERATION ---
+            
+            // 1. Title Box
             doc.setDrawColor(0);
             doc.setLineWidth(0.5);
-            doc.rect(marginX, 10, pageWidth - (marginX * 2), 14); // Box around title
+            doc.rect(marginX, 10, pageWidth - (marginX * 2), 14); 
             
             doc.setFont("helvetica", "bold");
             doc.setFontSize(18);
             doc.setTextColor(0);
-            // Center Title inside Box
             doc.text(pdfTitle, pageWidth / 2, 19, { align: "center" });
 
-            currentY = 32; // Start grid below title
+            currentY = 32;
             currentY = drawHeader(currentY);
 
             let pageCount = 1;
@@ -306,7 +338,6 @@
                     doc.addFileToVFS(file.name, base64);
                     doc.addFont(file.name, fontID, "normal");
 
-                    // Page Break Logic
                     if (currentY + rowHeight > pageHeight - 15) {
                         drawFooter(pageCount);
                         doc.addPage();
@@ -315,14 +346,14 @@
                         currentY = drawHeader(currentY);
                     }
 
-                    // --- DRAW GRID (NO ZEBRA STRIPING) ---
-                    doc.setDrawColor(200); // Light border color
+                    // Draw Grid Row
+                    doc.setDrawColor(200);
                     doc.setLineWidth(0.1);
 
-                    // Outer Rect for the whole row (Cleaner look)
+                    // Outer Rect
                     doc.rect(marginX, currentY, pageWidth - (marginX * 2), rowHeight);
                     
-                    // Vertical Lines inside the row
+                    // Vertical Lines (Dynamic Positions)
                     doc.line(marginX + colNo, currentY, marginX + colNo, currentY + rowHeight);
                     doc.line(marginX + colNo + colName, currentY, marginX + colNo + colName, currentY + rowHeight);
 
@@ -333,19 +364,19 @@
                     doc.setFontSize(10);
                     doc.text(`${i + 1}.`, marginX + 2, currentY + (rowHeight / 2) + 3);
 
-                    // 2. Font Name (Truncate if too long)
+                    // 2. Font Name
                     let displayName = cleanName;
-                    if (displayName.length > 20) displayName = displayName.substring(0, 18) + "..";
+                    // Smart Truncate based on width (approx calc)
+                    const maxChars = Math.floor(colName / 2.5); 
+                    if (displayName.length > maxChars) displayName = displayName.substring(0, maxChars) + "..";
+                    
                     doc.text(displayName, marginX + colNo + 2, currentY + (rowHeight / 2) + 3);
 
                     // 3. Custom Font Preview
                     doc.setFont(fontID);
                     doc.setFontSize(fontSize); 
                     
-                    // Center Vertically
                     const textY = currentY + (rowHeight / 2) + (fontSize / 3.5);
-                    
-                    // Note: User can overflow if text is huge, but we gave max space now
                     doc.text(sampleText, marginX + colNo + colName + 2, textY);
 
                     currentY += rowHeight;
@@ -358,7 +389,6 @@
 
             drawFooter(pageCount);
             
-            // Save file with Title Name (New Point 2)
             const safeFileName = pdfTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase();
             doc.save(`${safeFileName}.pdf`);
             
