@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Font to Image Generator (Gujarati Support)</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #1a1a1a;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        h2 { margin-bottom: 10px; }
+        .controls {
+            background: #333;
+            padding: 20px;
+            border-radius: 8px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        input[type="file"] {
+            color: #ccc;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover { background-color: #0056b3; }
+        button:disabled { background-color: #555; cursor: not-allowed; }
+        
+        #preview-container {
+            margin-top: 20px;
+            border: 2px dashed #555;
+            padding: 10px;
+            background: #fff; /* White background for the image preview */
+            max-width: 100%;
+            overflow: auto;
+        }
+        canvas { display: none; } /* Hide the canvas, we only show the image */
+        img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Font File to Image Generator</h2>
+    <p>Apna .ttf ya .otf file upload karein. Ye English aur Gujarati dono characters dikhayega.</p>
+
+    <div class="controls">
+        <input type="file" id="fontInput" accept=".ttf, .otf">
+        <button id="downloadBtn" disabled>Download Image</button>
+    </div>
+
+    <div id="preview-container">
+        <p style="color:black; text-align:center;" id="statusText">Image yahan dikhegi...</p>
+        <img id="resultImage" alt="Font Preview">
+    </div>
+
+    <canvas id="fontCanvas"></canvas>
+
+    <script>
+        const fontInput = document.getElementById('fontInput');
+        const canvas = document.getElementById('fontCanvas');
+        const ctx = canvas.getContext('2d');
+        const resultImage = document.getElementById('resultImage');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const statusText = document.getElementById('statusText');
+
+        // Character Ranges
+        const englishChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%&()";
+        // Gujarati Unicode Range (U+0A80 to U+0AFF)
+        let gujaratiChars = "";
+        for (let i = 0x0A81; i <= 0x0AF9; i++) {
+            gujaratiChars += String.fromCharCode(i) + " ";
+        }
+
+        const allText = englishChars + " " + gujaratiChars;
+
+        fontInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            statusText.innerText = "Processing...";
+            downloadBtn.disabled = true;
+
+            try {
+                // 1. Load the Font
+                const arrayBuffer = await file.arrayBuffer();
+                const fontFace = new FontFace('CustomFont', arrayBuffer);
+                await fontFace.load();
+                document.fonts.add(fontFace);
+
+                // 2. Setup Canvas
+                const fontSize = 60; // Size of letters
+                const padding = 30;
+                const columns = 10; // Number of letters per line
+                const lineHeight = fontSize * 1.5;
+                
+                // Split text for grid
+                const charsArray = allText.split('').filter(c => c.trim() !== '');
+                
+                // Calculate Canvas Height
+                const rows = Math.ceil(charsArray.length / columns);
+                canvas.width = 1200; // High resolution width
+                canvas.height = (rows * lineHeight) + (padding * 2);
+
+                // 3. Draw Background
+                ctx.fillStyle = "#ffffff";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // 4. Draw Text
+                ctx.font = `${fontSize}px "CustomFont"`;
+                ctx.fillStyle = "#000000";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+
+                let x = 0;
+                let y = padding + (lineHeight / 2);
+                const colWidth = canvas.width / columns;
+
+                charsArray.forEach((char, index) => {
+                    const colIndex = index % columns;
+                    const rowIndex = Math.floor(index / columns);
+                    
+                    const posX = (colIndex * colWidth) + (colWidth / 2);
+                    const posY = padding + (rowIndex * lineHeight) + (fontSize / 2);
+
+                    ctx.fillText(char, posX, posY);
+                });
+
+                // 5. Convert to Image
+                const dataUrl = canvas.toDataURL('image/png');
+                resultImage.src = dataUrl;
+                
+                statusText.style.display = 'none';
+                downloadBtn.disabled = false;
+
+                // 6. Setup Download
+                downloadBtn.onclick = () => {
+                    const link = document.createElement('a');
+                    link.download = 'font-preview.png';
+                    link.href = dataUrl;
+                    link.click();
+                };
+
+            } catch (err) {
+                console.error(err);
+                alert("Font load nahi ho paya. File corrupted ho sakti hai.");
+                statusText.innerText = "Error loading font.";
+            }
+        });
+    </script>
+
+</body>
+</html>
