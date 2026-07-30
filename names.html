@@ -1,0 +1,2260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BrandNameForge - Premium Brand Name Generator</title>
+    <style>
+        /* ============================================
+           CSS Variables & Reset
+           ============================================ */
+        :root {
+            --bg-primary: #f5f7fb;
+            --bg-secondary: #ffffff;
+            --bg-card: rgba(255, 255, 255, 0.75);
+            --bg-glass: rgba(255, 255, 255, 0.25);
+            --text-primary: #1a1a2e;
+            --text-secondary: #4a4a6a;
+            --text-muted: #7a7a9a;
+            --border-color: rgba(0, 0, 0, 0.08);
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0 8px 32px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 16px 64px rgba(0, 0, 0, 0.12);
+            --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.06);
+            --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --accent-color: #667eea;
+            --accent-hover: #5a6fd6;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --radius-sm: 8px;
+            --radius-md: 16px;
+            --radius-lg: 24px;
+            --radius-xl: 32px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --glass-backdrop: blur(20px);
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #0a0a1a;
+            --bg-secondary: #14142e;
+            --bg-card: rgba(20, 20, 46, 0.85);
+            --bg-glass: rgba(20, 20, 46, 0.4);
+            --text-primary: #e8e8f0;
+            --text-secondary: #b0b0d0;
+            --text-muted: #7a7a9a;
+            --border-color: rgba(255, 255, 255, 0.06);
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 8px 32px rgba(0, 0, 0, 0.4);
+            --shadow-lg: 0 16px 64px rgba(0, 0, 0, 0.5);
+            --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.3);
+            --accent-color: #818cf8;
+            --accent-hover: #6d78e0;
+        }
+
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            font-size: 16px;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            transition: background 0.3s ease, color 0.3s ease;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent-color);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-hover);
+        }
+
+        /* Navigation */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: var(--bg-card);
+            backdrop-filter: var(--glass-backdrop);
+            -webkit-backdrop-filter: var(--glass-backdrop);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0 24px;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            transition: var(--transition);
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            width: 100%;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            user-select: none;
+        }
+
+        .brand-icon {
+            font-size: 1.6rem;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .brand-text {
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .nav-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 18px;
+            border: none;
+            border-radius: var(--radius-sm);
+            background: transparent;
+            color: var(--text-secondary);
+            font-family: var(--font-family);
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .nav-btn:hover {
+            background: var(--bg-glass);
+            color: var(--text-primary);
+        }
+
+        .nav-btn.active {
+            background: var(--accent-color);
+            color: #ffffff;
+            box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+        }
+
+        .nav-btn .badge {
+            background: var(--danger-color);
+            color: #ffffff;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 1px 8px;
+            border-radius: 12px;
+            margin-left: 4px;
+        }
+
+        .theme-toggle {
+            width: 40px;
+            height: 40px;
+            border: none;
+            border-radius: 50%;
+            background: var(--bg-glass);
+            color: var(--text-primary);
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .theme-toggle:hover {
+            background: var(--border-color);
+            transform: rotate(20deg);
+        }
+
+        /* Main Container */
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(16px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Generator Tab */
+        .generator-wrapper {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .generator-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .main-title {
+            font-size: 2.8rem;
+            font-weight: 900;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.2;
+            margin-bottom: 12px;
+        }
+
+        .sub-title {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            font-weight: 400;
+        }
+
+        /* Generator Controls */
+        .generator-controls {
+            background: var(--bg-card);
+            backdrop-filter: var(--glass-backdrop);
+            -webkit-backdrop-filter: var(--glass-backdrop);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            margin-bottom: 32px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+        }
+        .control-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .control-label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .length-selector {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .length-btn {
+            padding: 8px 16px;
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            background: transparent;
+            color: var(--text-secondary);
+            font-family: var(--font-family);
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            min-width: 44px;
+        }
+
+        .length-btn:hover {
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+        }
+
+        .length-btn.active {
+            border-color: var(--accent-color);
+            background: var(--accent-color);
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .filter-selector {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 6px 14px;
+            border: 1.5px solid var(--border-color);
+            border-radius: 20px;
+            background: transparent;
+            color: var(--text-secondary);
+            font-family: var(--font-family);
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .filter-btn:hover {
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+        }
+
+        .filter-btn.active {
+            border-color: var(--accent-color);
+            background: var(--accent-color);
+            color: #ffffff;
+        }
+
+        /* Generate Area */
+        .generate-area {
+            background: var(--bg-card);
+            backdrop-filter: var(--glass-backdrop);
+            -webkit-backdrop-filter: var(--glass-backdrop);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 32px;
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 32px;
+        }
+
+        .name-display {
+            margin-bottom: 24px;
+        }
+
+        .generated-name {
+            font-size: 4rem;
+            font-weight: 900;
+            color: var(--text-primary);
+            display: block;
+            letter-spacing: -1px;
+            transition: var(--transition);
+            min-height: 80px;
+            line-height: 1.2;
+        }
+
+        .name-score {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+
+        .score-item {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 32px;
+            border: none;
+            border-radius: var(--radius-sm);
+            background: var(--gradient-primary);
+            color: #ffffff;
+            font-family: var(--font-family);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+        }
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 24px;
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            background: transparent;
+            color: var(--text-secondary);
+            font-family: var(--font-family);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+        }
+
+        .btn-secondary.active {
+            border-color: var(--success-color);
+            color: var(--success-color);
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        .btn-like {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 24px;
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            background: transparent;
+            color: var(--text-secondary);
+            font-family: var(--font-family);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-like:hover:not(:disabled) {
+            border-color: var(--danger-color);
+            color: var(--danger-color);
+        }
+
+        .btn-like.liked {
+            border-color: var(--danger-color);
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger-color);
+        }
+
+        .btn-like:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        /* Suggestions Section */
+        .suggestions-section {
+            background: var(--bg-card);
+            backdrop-filter: var(--glass-backdrop);
+            -webkit-backdrop-filter: var(--glass-backdrop);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            margin-bottom: 32px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+        }
+
+        .suggestions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 12px;
+        }
+
+        .suggestion-item {
+            background: var(--bg-glass);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 12px 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .suggestion-item:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-sm);
+            border-color: var(--accent-color);
+        }
+
+        .suggestion-item .suggestion-score {
+            display: block;
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* Score Section */
+        .score-section {
+            background: var(--bg-card);
+            backdrop-filter: var(--glass-backdrop);
+            -webkit-backdrop-filter: var(--glass-backdrop);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .score-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 12px;
+        }
+
+        .score-grid-item {
+            background: var(--bg-glass);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 12px;
+            text-align: center;
+        }
+
+        .score-grid-item .score-label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .score-grid-item .score-value {
+            display: block;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-top: 4px;
+        }
+
+        .score-grid-item .score-bar {
+            height: 4px;
+            border-radius: 2px;
+            background: var(--border-color);
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .score-grid-item .score-bar-fill {
+            height: 100%;
+            border-radius: 2px;
+            background: var(--gradient-primary);
+            transition: width 0.6s ease;
+        }
+
+        /* Saved Tab */
+        .saved-wrapper {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .saved-header {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .saved-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 200px;
+            position: relative;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px 16px 10px 44px;
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            background: var(--bg-card);
+            color: var(--text-primary);
+            font-family: var(--font-family);
+            font-size: 0.95rem;
+            transition: var(--transition);
+            outline: none;
+        }
+
+        .search-box input:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        .search-box .search-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        .export-import {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-export,
+        .btn-import {
+            padding: 10px 18px;
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            background: transparent;
+            color: var(--text-secondary);
+            font-family: var(--font-family);
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-export:hover,
+        .btn-import:hover {
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+        }
+
+        /* Saved Stats */
+        .saved-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 16px;
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .stat-label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-value {
+            display: block;
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-top: 4px;
+        }
+
+        /* Saved List */
+        .saved-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+
+        .saved-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            transition: var(--transition);
+            animation: slideIn 0.3s ease;
+        }
+
+        .saved-item:hover {
+            border-color: var(--accent-color);
+            box-shadow: var(--shadow-sm);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-16px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .saved-item .name-text {
+            flex: 1;
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: var(--text-primary);
+        }
+
+        .saved-item .name-meta {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .saved-item .action-group {
+            display: flex;
+            gap: 4px;
+        }
+
+        .saved-item .action-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            border-radius: 50%;
+            background: transparent;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+        }
+
+        .saved-item .action-btn:hover {
+            background: var(--bg-glass);
+            color: var(--text-primary);
+        }
+
+        .saved-item .action-btn.favorite {
+            color: var(--danger-color);
+        }
+
+        .saved-item .action-btn.super-favorite {
+            color: var(--warning-color);
+        }
+
+        .saved-item .action-btn.delete:hover {
+            color: var(--danger-color);
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        /* Super Favorites Section */
+        .super-favorites-section {
+            background: var(--bg-card);
+            backdrop-filter: var(--glass-backdrop);
+            -webkit-backdrop-filter: var(--glass-backdrop);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            box-shadow: var(--shadow-sm);
+            margin-top: 24px;
+        }
+
+        .super-favorites-section .section-title {
+            margin-bottom: 16px;
+        }
+
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .toast {
+            padding: 14px 20px;
+            border-radius: var(--radius-sm);
+            background: var(--bg-card);
+            backdrop-filter: var(--glass-backdrop);
+            -webkit-backdrop-filter: var(--glass-backdrop);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-lg);
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            font-weight: 500;
+            animation: slideUp 0.4s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .toast.success {
+            border-left: 4px solid var(--success-color);
+        }
+        .toast.error {
+            border-left: 4px solid var(--danger-color);
+        }
+        .toast.warning {
+            border-left: 4px solid var(--warning-color);
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .main-title {
+                font-size: 2.2rem;
+            }
+            .generated-name {
+                font-size: 3rem;
+            }
+            .suggestions-grid {
+                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            }
+        }
+
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 0 16px;
+                height: 60px;
+            }
+            .nav-brand {
+                font-size: 1.1rem;
+            }
+            .brand-text {
+                font-size: 0.9rem;
+            }
+            .nav-btn span.icon {
+                display: none;
+            }
+            .nav-btn {
+                padding: 6px 12px;
+                font-size: 0.8rem;
+            }
+            .main-title {
+                font-size: 1.8rem;
+            }
+            .sub-title {
+                font-size: 0.95rem;
+            }
+            .generator-controls {
+                padding: 16px;
+            }
+            .length-selector {
+                gap: 4px;
+            }
+            .length-btn {
+                padding: 6px 12px;
+                font-size: 0.8rem;
+                min-width: 36px;
+            }
+            .filter-selector {
+                gap: 4px;
+            }
+            .filter-btn {
+                padding: 4px 10px;
+                font-size: 0.7rem;
+            }
+            .generate-area {
+                padding: 20px;
+            }
+            .generated-name {
+                font-size: 2.4rem;
+                min-height: 60px;
+            }
+            .action-buttons {
+                gap: 8px;
+            }
+            .btn-primary,
+            .btn-secondary,
+            .btn-like {
+                padding: 10px 16px;
+                font-size: 0.85rem;
+            }
+            .suggestions-grid {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            }
+            .score-grid {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            }
+            .saved-header {
+                gap: 12px;
+            }
+            .saved-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .search-box {
+                min-width: unset;
+            }
+            .export-import {
+                justify-content: stretch;
+            }
+            .btn-export,
+            .btn-import {
+                flex: 1;
+                text-align: center;
+            }
+            .saved-item {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+            .saved-item .name-text {
+                font-size: 1rem;
+                width: 100%;
+            }
+            .saved-item .name-meta {
+                font-size: 0.7rem;
+                gap: 8px;
+            }
+            .saved-item .action-group {
+                margin-left: auto;
+            }
+            .stat-card {
+                padding: 12px;
+            }
+            .stat-value {
+                font-size: 1.4rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .main-title {
+                font-size: 1.5rem;
+            }
+            .generated-name {
+                font-size: 2rem;
+                min-height: 48px;
+            }
+            .nav-brand {
+                font-size: 0.95rem;
+            }
+            .brand-icon {
+                font-size: 1.2rem;
+            }
+            .brand-text {
+                font-size: 0.8rem;
+            }
+            .nav-btn {
+                padding: 4px 10px;
+                font-size: 0.7rem;
+            }
+            .btn-primary,
+            .btn-secondary,
+            .btn-like {
+                padding: 8px 12px;
+                font-size: 0.8rem;
+            }
+            .saved-item .name-text {
+                font-size: 0.9rem;
+            }
+            .saved-item .action-btn {
+                width: 28px;
+                height: 28px;
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <span class="brand-icon">✦</span>
+                <span class="brand-text">BrandNameForge</span>
+            </div>
+            <div class="nav-links">
+                <button class="nav-btn active" data-tab="generator">
+                    <span class="icon">⚡</span> Generator
+                </button>
+                <button class="nav-btn" data-tab="saved">
+                    <span class="icon">❤️</span> Saved
+                    <span class="badge" id="savedCount">0</span>
+                </button>
+                <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+                    <span class="theme-icon">🌙</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <main class="main-container">
+
+        <!-- Generator Tab -->
+        <section class="tab-content active" id="generatorTab">
+            <div class="generator-wrapper">
+
+                <!-- Header -->
+                <div class="generator-header">
+                    <h1 class="main-title">Generate Your Perfect Brand Name</h1>
+                    <p class="sub-title">AI-powered name generation with natural sounding, pronounceable brand names</p>
+                </div>
+
+                <!-- Generator Controls -->
+                <div class="generator-controls">
+                    <div class="control-group">
+                        <label class="control-label">Name Length</label>
+                        <div class="length-selector" id="lengthSelector">
+                            <button class="length-btn" data-length="3">3</button>
+                            <button class="length-btn active" data-length="4">4</button>
+                            <button class="length-btn" data-length="5">5</button>
+                            <button class="length-btn" data-length="6">6</button>
+                            <button class="length-btn" data-length="7">7</button>
+                            <button class="length-btn" data-length="8">8</button>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label class="control-label">Filter</label>
+                        <div class="filter-selector" id="filterSelector">
+                            <button class="filter-btn active" data-filter="random">Random</button>
+                            <button class="filter-btn" data-filter="pronounceable">Pronounceable</button>
+                            <button class="filter-btn" data-filter="luxury">Luxury</button>
+                            <button class="filter-btn" data-filter="tech">Tech</button>
+                            <button class="filter-btn" data-filter="startup">Startup</button>
+                            <button class="filter-btn" data-filter="indian">Indian</button>
+                            <button class="filter-btn" data-filter="global">Global</button>
+                            <button class="filter-btn" data-filter="premium">Premium</button>
+                            <button class="filter-btn" data-filter="minimal">Minimal</button>
+                            <button class="filter-btn" data-filter="fast">Fast</button>
+                            <button class="filter-btn" data-filter="modern">Modern</button>
+                            <button class="filter-btn" data-filter="family">Family Trust</button>
+                            <button class="filter-btn" data-filter="luxurybrand">Luxury Brand</button>
+                            <button class="filter-btn" data-filter="aibrand">AI Brand</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Generate Area -->
+                <div class="generate-area">
+                    <div class="name-display">
+                        <span class="generated-name" id="generatedName">Click Generate</span>
+                        <div class="name-score" id="nameScore">
+                            <span class="score-item">⭐ 0</span>
+                            <span class="score-item">📈 0</span>
+                            <span class="score-item">🏆 0</span>
+                        </div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button class="btn-primary generate-btn" id="generateBtn">
+                            <span class="icon">🎲</span> Generate
+                        </button>
+                        <button class="btn-secondary auto-btn" id="autoBtn">
+                            <span class="icon">▶</span> Auto OFF
+                        </button>
+                        <button class="btn-like" id="likeBtn" disabled>
+                            <span class="icon">🤍</span> Like
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Top 5 Suggestions -->
+                <div class="suggestions-section">
+                    <h3 class="section-title">Top 5 Suggestions</h3>
+                    <div class="suggestions-grid" id="suggestionsGrid"></div>
+                </div>
+
+                <!-- Score Breakdown -->
+                <div class="score-section">
+                    <h3 class="section-title">Name Score Breakdown</h3>
+                    <div class="score-grid" id="scoreGrid"></div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Saved Tab -->
+        <section class="tab-content" id="savedTab">
+            <div class="saved-wrapper">
+
+                <!-- Saved Header -->
+                <div class="saved-header">
+                    <h2 class="section-title">Your Saved Brand Names</h2>
+                    <div class="saved-actions">
+                        <div class="search-box">
+                            <input type="text" id="searchInput" placeholder="Search saved names..." />
+                            <span class="search-icon">🔍</span>
+                        </div>
+                        <div class="export-import">
+                            <button class="btn-export" id="exportBtn">📤 Export</button>
+                            <div class="import-wrapper">
+                                <button class="btn-import" id="importBtn">📥 Import</button>
+                                <input type="file" id="importFile" accept=".txt,.csv,.json" style="display:none" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Saved Stats -->
+                <div class="saved-stats">
+                    <div class="stat-card">
+                        <span class="stat-label">Total Saved</span>
+                        <span class="stat-value" id="totalSaved">0</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">Favorites</span>
+                        <span class="stat-value" id="favoriteCount">0</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">Super Favorites</span>
+                        <span class="stat-value" id="superFavoriteCount">0</span>
+                    </div>
+                </div>
+
+                <!-- Saved List -->
+                <div class="saved-list" id="savedList"></div>
+
+                <!-- Super Favorites -->
+                <div class="super-favorites-section">
+                    <h3 class="section-title">⭐ Super Favorites</h3>
+                    <div class="saved-list" id="superFavoritesList"></div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Toast Notification -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        // ============================================
+        // UTILITY FUNCTIONS
+        // ============================================
+        const Utils = {
+            randomInt: (min, max) => Math.floor(Math.random() * (max - min + 1)) + min,
+            randomItem: (arr) => arr[Math.floor(Math.random() * arr.length)],
+            shuffle: (arr) => {
+                for (let i = arr.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [arr[i], arr[j]] = [arr[j], arr[i]];
+                }
+                return arr;
+            },
+            capitalize: (str) => str.charAt(0).toUpperCase() + str.slice(1),
+            sleep: (ms) => new Promise(resolve => setTimeout(resolve, ms)),
+            debounce: (fn, delay) => {
+                let timeout;
+                return (...args) => {
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => fn(...args), delay);
+                };
+            }
+        };
+
+        // ============================================
+        // BRAND NAME GENERATION ALGORITHM
+        // ============================================
+        const BrandGenerator = {
+            consonants: ['b', 'c', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'm', 'n', 'p', 'r', 's', 't', 'v', 'w', 'x', 'y', 'z'],
+            vowels: ['a', 'e', 'i', 'o', 'u'],
+            consonantClusters: ['bl', 'br', 'cl', 'cr', 'dr', 'fl', 'fr', 'gl', 'gr', 'kl', 'kr', 'pl', 'pr', 'qu', 'sc', 'sk',
+                'sl', 'sm', 'sn', 'sp', 'sq', 'st', 'str', 'sw', 'tr', 'tw'
+            ],
+            vowelClusters: ['ae', 'ai', 'ea', 'ei', 'ie', 'oa', 'oe', 'oi', 'oo', 'ou', 'ua', 'ue', 'ui', 'uo'],
+            endings: ['', 's', 'r', 'n', 'l', 'x', 'z', 'k', 'm', 'p', 't', 'd', 'b', 'g'],
+            prefixes: ['', 'a', 'e', 'i', 'o', 'u', 'al', 'el', 'il', 'ol', 'ul', 'am', 'em', 'im', 'om', 'um'],
+
+            // Brand style filters
+            filters: {
+                random: (name) => true,
+                pronounceable: (name) => {
+                    const score = this.calculatePronounceability(name);
+                    return score > 60;
+                },
+                luxury: (name) => {
+                    const luxuryPatterns = ['qu', 'ph', 'th', 'ch', 'sh', 'wh'];
+                    return luxuryPatterns.some(p => name.includes(p)) && name.length >= 5;
+                },
+                tech: (name) => {
+                    const techPatterns = ['x', 'z', 'q', 'v', 'k', 'ex', 'ix', 'ox', 'ux'];
+                    return techPatterns.some(p => name.includes(p));
+                },
+                startup: (name) => name.length <= 6 && this.calculatePronounceability(name) > 50,
+                indian: (name) => {
+                    const indianPatterns = ['sh', 'ch', 'th', 'dh', 'bh', 'gh', 'kh', 'ph'];
+                    return indianPatterns.some(p => name.includes(p)) || name.endsWith('a') || name.endsWith('i');
+                },
+                global: (name) => name.length >= 5 && this.calculatePronounceability(name) > 60,
+                premium: (name) => name.length >= 6 && name.includes('r') && name.includes('l'),
+                minimal: (name) => name.length <= 5 && !name.includes('x') && !name.includes('z'),
+                fast: (name) => name.length <= 4 && this.calculatePronounceability(name) > 50,
+                modern: (name) => {
+                    const modernPatterns = ['x', 'z', 'y', 'q', 'v', 'k'];
+                    return modernPatterns.some(p => name.includes(p));
+                },
+                family: (name) => name.length >= 6 && name.includes('a') && name.includes('e') && name.includes('i'),
+                luxurybrand: (name) => name.length >= 6 && name.includes('qu') && name.includes('r'),
+                aibrand: (name) => {
+                    const aiPatterns = ['ai', 'ei', 'ia', 'ea', 'ae'];
+                    return aiPatterns.some(p => name.includes(p)) || name.includes('x') || name.includes('z');
+                }
+            },
+
+            // Known brands to avoid
+            knownBrands: [
+                'apple', 'google', 'microsoft', 'amazon', 'facebook', 'twitter', 'uber', 'airbnb',
+                'netflix', 'spotify', 'slack', 'dropbox', 'zoom', 'tesla', 'spacex', 'paypal',
+                'venmo', 'stripe', 'shopify', 'snapchat', 'tiktok', 'whatsapp', 'instagram',
+                'linkedin', 'youtube', 'reddit', 'pinterest', 'tumblr', 'flickr', 'skype',
+                'nike', 'adidas', 'puma', 'levi', 'zara', 'hm', 'gucci', 'louis', 'vuitton',
+                'rolex', 'omega', 'tissot', 'seiko', 'citizen', 'casio', 'sony', 'samsung',
+                'lg', 'philips', 'panasonic', 'canon', 'nikon', 'leica', 'zeiss', 'kodak',
+                'rollsroyce', 'ferrari', 'lamborghini', 'porsche', 'mercedes', 'bmw', 'audi',
+                'toyota', 'honda', 'ford', 'chevrolet', 'dodge', 'jeep', 'landrover'
+            ],
+
+            // Generated names cache to avoid duplicates
+            generatedCache: new Set(),
+
+            // Core generation algorithm
+            generatePattern(length, style = 'random') {
+                let name = '';
+                let attempts = 0;
+
+                while (attempts < 100) {
+                    name = this.buildName(length);
+                    if (this.isValidName(name, style)) {
+                        break;
+                    }
+                    attempts++;
+                }
+
+                // Fallback if no valid name found
+                if (!this.isValidName(name, style)) {
+                    name = this.fallbackGenerate(length);
+                }
+
+                return name;
+            },
+
+            buildName(length) {
+                let name = '';
+                let pattern = [];
+
+                // Generate syllable pattern
+                while (pattern.length < length) {
+                    const type = Utils.randomItem(['CV', 'CVC', 'VC', 'CVVC', 'CCV', 'CVCV']);
+                    const syllable = this.generateSyllable(type);
+                    pattern.push(syllable);
+                }
+
+                // Join syllables and trim to length
+                name = pattern.join('');
+                if (name.length > length) {
+                    name = name.slice(0, length);
+                } else if (name.length < length) {
+                    // Pad if needed
+                    const pad = this.vowels[Utils.randomInt(0, this.vowels.length - 1)];
+                    name = name + pad;
+                    if (name.length > length) {
+                        name = name.slice(0, length);
+                    }
+                }
+
+                return name.toLowerCase();
+            },
+
+            generateSyllable(type) {
+                const c = Utils.randomItem(this.consonants);
+                const v = Utils.randomItem(this.vowels);
+                const c2 = Utils.randomItem(this.consonants);
+                const cluster = Utils.randomItem(this.consonantClusters);
+                const vowelCluster = Utils.randomItem(this.vowelClusters);
+
+                switch (type) {
+                    case 'CV':
+                        return c + v;
+                    case 'CVC':
+                        return c + v + c2;
+                    case 'VC':
+                        return v + c;
+                    case 'CVVC':
+                        return c + vowelCluster;
+                    case 'CCV':
+                        return cluster + v;
+                    case 'CVCV':
+                        return c + v + c + v;
+                    default:
+                        return c + v;
+                }
+            },
+
+            isValidName(name, style) {
+                // Check length
+                if (name.length < 3 || name.length > 8) return false;
+
+                // Check against known brands
+                if (this.knownBrands.some(brand => brand.includes(name) || name.includes(brand))) {
+                    return false;
+                }
+
+                // Check cache
+                if (this.generatedCache.has(name)) return false;
+
+                // Check style filter
+                const filter = this.filters[style] || this.filters.random;
+                if (!filter(name)) return false;
+
+                // Check minimum pronounceability
+                if (this.calculatePronounceability(name) < 30) return false;
+
+                // No consecutive same letters
+                if (/(.)\1/.test(name)) return false;
+
+                // No more than 3 consonants in a row
+                if (/[bcdfghjklmnpqrstvwxyz]{4,}/.test(name)) return false;
+
+                // No more than 3 vowels in a row
+                if (/[aeiou]{4,}/.test(name)) return false;
+
+                return true;
+            },
+
+            fallbackGenerate(length) {
+                const vowels = this.vowels;
+                const consonants = this.consonants;
+                let name = '';
+
+                // Simple CV pattern
+                for (let i = 0; i < length; i++) {
+                    if (i % 2 === 0) {
+                        name += Utils.randomItem(consonants);
+                    } else {
+                        name += Utils.randomItem(vowels);
+                    }
+                }
+
+                // If length is odd, add a consonant at the end
+                if (length % 2 === 1 && name.length > 0) {
+                    name += Utils.randomItem(consonants);
+                }
+
+                return name.toLowerCase();
+            },
+
+            calculatePronounceability(name) {
+                let score = 0;
+                const vowels = new Set(['a', 'e', 'i', 'o', 'u']);
+
+                // Reward alternating consonant-vowel patterns
+                let lastWasVowel = false;
+                let transitions = 0;
+                let vowelCount = 0;
+                let consonantCount = 0;
+
+                for (let i = 0; i < name.length; i++) {
+                    const char = name[i];
+                    if (vowels.has(char)) {
+                        vowelCount++;
+                        if (!lastWasVowel) transitions++;
+                        lastWasVowel = true;
+                    } else {
+                        consonantCount++;
+                        if (lastWasVowel) transitions++;
+                        lastWasVowel = false;
+                    }
+                }
+
+                // Score based on transitions
+                score += (transitions / (name.length - 1)) * 50;
+
+                // Reward having both vowels and consonants
+                if (vowelCount > 0 && consonantCount > 0) {
+                    score += 20;
+                }
+
+                // Reward having at least one vowel per 3 characters
+                if (vowelCount >= Math.ceil(name.length / 3)) {
+                    score += 15;
+                }
+
+                // Penalize consecutive consonants
+                const consonantRegex = /[bcdfghjklmnpqrstvwxyz]{3,}/;
+                if (consonantRegex.test(name)) {
+                    score -= 20;
+                }
+
+                // Penalize consecutive vowels
+                const vowelRegex = /[aeiou]{3,}/;
+                if (vowelRegex.test(name)) {
+                    score -= 15;
+                }
+
+                // Reward common English endings
+                const goodEndings = ['er', 'or', 'al', 'el', 'le', 'ce', 'ge', 've', 'se', 'ly', 'ty', 'ry'];
+                for (const ending of goodEndings) {
+                    if (name.endsWith(ending)) {
+                        score += 10;
+                        break;
+                    }
+                }
+
+                // Reward starting with common prefixes
+                const goodPrefixes = ['a', 'be', 'de', 'en', 'in', 'pro', 're', 'se', 'un'];
+                for (const prefix of goodPrefixes) {
+                    if (name.startsWith(prefix)) {
+                        score += 8;
+                        break;
+                    }
+                }
+
+                return Math.max(0, Math.min(100, score));
+            },
+
+            calculateScore(name) {
+                const pron = this.calculatePronounceability(name);
+                const memorability = Math.min(100, pron + Utils.randomInt(-10, 10));
+                const brandability = Math.min(100, pron + Utils.randomInt(-15, 5));
+                const trust = Math.min(100, pron + Utils.randomInt(-20, 0));
+                const premium = Math.min(100, pron + Utils.randomInt(-10, 20));
+                const startup = Math.min(100, pron + Utils.randomInt(-5, 15));
+                const logoCompat = Math.min(100, pron + Utils.randomInt(-10, 10));
+
+                const total = Math.round((pron + memorability + brandability + trust + premium + startup + logoCompat) / 7);
+
+                return {
+                    pronunciation: Math.round(pron),
+                    memorability: Math.round(memorability),
+                    brandability: Math.round(brandability),
+                    trust: Math.round(trust),
+                    premium: Math.round(premium),
+                    startup: Math.round(startup),
+                    logoCompat: Math.round(logoCompat),
+                    total: total
+                };
+            },
+
+            generateBatch(count, length, style) {
+                const results = [];
+                const attempts = 0;
+
+                // Clear cache for new batch
+                this.generatedCache = new Set();
+
+                for (let i = 0; i < count * 5 && results.length < count; i++) {
+                    const name = this.generatePattern(length, style);
+                    this.generatedCache.add(name);
+                    const score = this.calculateScore(name);
+                    results.push({ name: this.capitalizeName(name), score });
+                }
+
+                // Sort by total score
+                results.sort((a, b) => b.score.total - a.score.total);
+
+                return results.slice(0, count);
+            },
+
+            capitalizeName(name) {
+                return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+            },
+
+            // Enhanced generation with style-specific patterns
+            generateWithStyle(length, style) {
+                const name = this.generatePattern(length, style);
+                return {
+                    name: this.capitalizeName(name),
+                    score: this.calculateScore(name)
+                };
+            }
+        };
+
+        // ============================================
+        // STORAGE MANAGEMENT
+        // ============================================
+        const Storage = {
+            get(key, defaultValue) {
+                try {
+                    const data = localStorage.getItem(`brandforge_${key}`);
+                    return data ? JSON.parse(data) : defaultValue;
+                } catch {
+                    return defaultValue;
+                }
+            },
+            set(key, value) {
+                try {
+                    localStorage.setItem(`brandforge_${key}`, JSON.stringify(value));
+                    return true;
+                } catch {
+                    return false;
+                }
+            },
+            getSavedNames() {
+                return this.get('savedNames', []);
+            },
+            setSavedNames(names) {
+                return this.set('savedNames', names);
+            },
+            getSuperFavorites() {
+                return this.get('superFavorites', []);
+            },
+            setSuperFavorites(names) {
+                return this.set('superFavorites', names);
+            },
+            addSavedName(nameData) {
+                const names = this.getSavedNames();
+                if (!names.some(n => n.name === nameData.name)) {
+                    names.push({
+                        ...nameData,
+                        id: Date.now(),
+                        timestamp: new Date().toISOString()
+                    });
+                    this.setSavedNames(names);
+                    return true;
+                }
+                return false;
+            },
+            removeSavedName(name) {
+                let names = this.getSavedNames();
+                names = names.filter(n => n.name !== name);
+                this.setSavedNames(names);
+                // Remove from super favorites too
+                let superFavs = this.getSuperFavorites();
+                superFavs = superFavs.filter(n => n !== name);
+                this.setSuperFavorites(superFavs);
+                return true;
+            },
+            toggleFavorite(name) {
+                const names = this.getSavedNames();
+                const index = names.findIndex(n => n.name === name);
+                if (index !== -1) {
+                    names[index].favorite = !names[index].favorite;
+                    this.setSavedNames(names);
+                    return names[index].favorite;
+                }
+                return false;
+            },
+            toggleSuperFavorite(name) {
+                let superFavs = this.getSuperFavorites();
+                const index = superFavs.indexOf(name);
+                if (index !== -1) {
+                    superFavs.splice(index, 1);
+                } else {
+                    superFavs.push(name);
+                    // Also mark as favorite
+                    const names = this.getSavedNames();
+                    const nameIndex = names.findIndex(n => n.name === name);
+                    if (nameIndex !== -1) {
+                        names[nameIndex].favorite = true;
+                        this.setSavedNames(names);
+                    }
+                }
+                this.setSuperFavorites(superFavs);
+                return index === -1;
+            },
+            isSuperFavorite(name) {
+                const superFavs = this.getSuperFavorites();
+                return superFavs.includes(name);
+            },
+            isFavorite(name) {
+                const names = this.getSavedNames();
+                const found = names.find(n => n.name === name);
+                return found ? found.favorite || false : false;
+            },
+            importNames(data) {
+                try {
+                    let imported = [];
+                    if (Array.isArray(data)) {
+                        imported = data;
+                    } else if (typeof data === 'string') {
+                        const lines = data.split('\n').filter(line => line.trim());
+                        imported = lines.map(line => {
+                            const parts = line.split(',').map(s => s.trim());
+                            return {
+                                name: parts[0],
+                                favorite: parts[1] === 'true' || false,
+                                score: { total: parseInt(parts[2]) || 0 }
+                            };
+                        });
+                    }
+                    const current = this.getSavedNames();
+                    const newNames = imported.filter(imp => !current.some(c => c.name === imp.name));
+                    const merged = [...current, ...newNames];
+                    this.setSavedNames(merged);
+                    return newNames.length;
+                } catch {
+                    return 0;
+                }
+            },
+            exportNames(format) {
+                const names = this.getSavedNames();
+                switch (format) {
+                    case 'txt':
+                        return names.map(n => n.name).join('\n');
+                    case 'csv':
+                        return 'Name,Favorite,Score\n' + names.map(n =>
+                            `${n.name},${n.favorite || false},${n.score?.total || 0}`
+                        ).join('\n');
+                    case 'json':
+                        return JSON.stringify(names, null, 2);
+                    default:
+                        return '';
+                }
+            }
+        };
+
+        // ============================================
+        // UI CONTROLLER
+        // ============================================
+        class UI {
+            constructor() {
+                this.currentName = null;
+                this.currentScore = null;
+                this.isAutoGenerating = false;
+                this.autoInterval = null;
+                this.selectedLength = 4;
+                this.selectedFilter = 'random';
+                this.suggestions = [];
+                this.searchTerm = '';
+
+                this.initElements();
+                this.initTheme();
+                this.initEventListeners();
+                this.renderSaved();
+                this.updateSavedCount();
+                this.generateName();
+            }
+
+            initElements() {
+                this.elements = {
+                    generatedName: document.getElementById('generatedName'),
+                    nameScore: document.getElementById('nameScore'),
+                    generateBtn: document.getElementById('generateBtn'),
+                    autoBtn: document.getElementById('autoBtn'),
+                    likeBtn: document.getElementById('likeBtn'),
+                    suggestionsGrid: document.getElementById('suggestionsGrid'),
+                    scoreGrid: document.getElementById('scoreGrid'),
+                    savedList: document.getElementById('savedList'),
+                    superFavoritesList: document.getElementById('superFavoritesList'),
+                    totalSaved: document.getElementById('totalSaved'),
+                    favoriteCount: document.getElementById('favoriteCount'),
+                    superFavoriteCount: document.getElementById('superFavoriteCount'),
+                    searchInput: document.getElementById('searchInput'),
+                    exportBtn: document.getElementById('exportBtn'),
+                    importBtn: document.getElementById('importBtn'),
+                    importFile: document.getElementById('importFile'),
+                    savedCount: document.getElementById('savedCount'),
+                    themeToggle: document.getElementById('themeToggle'),
+                    toastContainer: document.getElementById('toastContainer')
+                };
+
+                this.lengthButtons = document.querySelectorAll('.length-btn');
+                this.filterButtons = document.querySelectorAll('.filter-btn');
+                this.navButtons = document.querySelectorAll('.nav-btn');
+            }
+
+            initTheme() {
+                const savedTheme = localStorage.getItem('brandforge_theme');
+                if (savedTheme === 'dark') {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                    this.elements.themeToggle.querySelector('.theme-icon').textContent = '☀️';
+                }
+            }
+
+            initEventListeners() {
+                // Generate button
+                this.elements.generateBtn.addEventListener('click', () => {
+                    this.generateName();
+                });
+
+                // Auto generate button
+                this.elements.autoBtn.addEventListener('click', () => {
+                    this.toggleAutoGenerate();
+                });
+
+                // Like button
+                this.elements.likeBtn.addEventListener('click', () => {
+                    this.likeCurrentName();
+                });
+
+                // Double click on name
+                this.elements.generatedName.addEventListener('dblclick', () => {
+                    this.superLikeCurrentName();
+                });
+
+                // Length buttons
+                this.lengthButtons.forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        this.lengthButtons.forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        this.selectedLength = parseInt(btn.dataset.length);
+                        this.generateName();
+                    });
+                });
+
+                // Filter buttons
+                this.filterButtons.forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        this.filterButtons.forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        this.selectedFilter = btn.dataset.filter;
+                        this.generateName();
+                    });
+                });
+
+                // Navigation
+                this.navButtons.forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const tab = btn.dataset.tab;
+                        this.switchTab(tab);
+                    });
+                });
+
+                // Theme toggle
+                this.elements.themeToggle.addEventListener('click', () => {
+                    this.toggleTheme();
+                });
+
+                // Search
+                this.elements.searchInput.addEventListener('input', (e) => {
+                    this.searchTerm = e.target.value.toLowerCase();
+                    this.renderSaved();
+                });
+
+                // Export
+                this.elements.exportBtn.addEventListener('click', () => {
+                    this.exportData();
+                });
+
+                // Import
+                this.elements.importBtn.addEventListener('click', () => {
+                    this.elements.importFile.click();
+                });
+
+                this.elements.importFile.addEventListener('change', (e) => {
+                    this.importData(e);
+                });
+            }
+
+            switchTab(tab) {
+                this.navButtons.forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.tab === tab);
+                });
+
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.toggle('active', content.id === tab + 'Tab');
+                });
+
+                if (tab === 'saved') {
+                    this.renderSaved();
+                    this.updateSavedCount();
+                }
+            }
+
+            toggleTheme() {
+                const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+                if (isDark) {
+                    document.documentElement.removeAttribute('data-theme');
+                    this.elements.themeToggle.querySelector('.theme-icon').textContent = '🌙';
+                    localStorage.setItem('brandforge_theme', 'light');
+                } else {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                    this.elements.themeToggle.querySelector('.theme-icon').textContent = '☀️';
+                    localStorage.setItem('brandforge_theme', 'dark');
+                }
+            }
+
+            generateName() {
+                const result = BrandGenerator.generateWithStyle(this.selectedLength, this.selectedFilter);
+                this.currentName = result.name;
+                this.currentScore = result.score;
+                this.suggestions = BrandGenerator.generateBatch(5, this.selectedLength, this.selectedFilter);
+
+                // Update display
+                this.elements.generatedName.textContent = this.currentName;
+                this.elements.likeBtn.disabled = false;
+
+                // Check if already liked
+                const savedNames = Storage.getSavedNames();
+                const isLiked = savedNames.some(n => n.name === this.currentName);
+                this.elements.likeBtn.classList.toggle('liked', isLiked);
+                this.elements.likeBtn.querySelector('.icon').textContent = isLiked ? '❤️' : '🤍';
+
+                // Update score
+                this.updateScoreDisplay(this.currentScore);
+                this.updateSuggestions();
+                this.updateScoreBreakdown(this.currentScore);
+
+                // Add to cache
+                BrandGenerator.generatedCache.add(this.currentName.toLowerCase());
+            }
+
+            updateScoreDisplay(score) {
+                this.elements.nameScore.innerHTML = `
+                    <span class="score-item">⭐ ${score.total}/100</span>
+                    <span class="score-item">📈 ${score.pronunciation}%</span>
+                    <span class="score-item">🏆 ${score.brandability}%</span>
+                `;
+            }
+
+            updateSuggestions() {
+                const grid = this.elements.suggestionsGrid;
+                grid.innerHTML = this.suggestions.map((s, i) => `
+                    <div class="suggestion-item" data-name="${s.name}">
+                        ${s.name}
+                        <span class="suggestion-score">⭐ ${s.score.total}</span>
+                    </div>
+                `).join('');
+
+                // Click to use suggestion
+                grid.querySelectorAll('.suggestion-item').forEach(el => {
+                    el.addEventListener('click', () => {
+                        const name = el.dataset.name;
+                        const suggestion = this.suggestions.find(s => s.name === name);
+                        if (suggestion) {
+                            this.currentName = suggestion.name;
+                            this.currentScore = suggestion.score;
+                            this.elements.generatedName.textContent = this.currentName;
+                            this.updateScoreDisplay(this.currentScore);
+                            this.updateScoreBreakdown(this.currentScore);
+                            this.elements.likeBtn.disabled = false;
+
+                            const savedNames = Storage.getSavedNames();
+                            const isLiked = savedNames.some(n => n.name === this.currentName);
+                            this.elements.likeBtn.classList.toggle('liked', isLiked);
+                            this.elements.likeBtn.querySelector('.icon').textContent = isLiked ? '❤️' : '🤍';
+                        }
+                    });
+                });
+            }
+
+            updateScoreBreakdown(score) {
+                const grid = this.elements.scoreGrid;
+                const items = [
+                    { label: 'Pronunciation', value: score.pronunciation },
+                    { label: 'Memorability', value: score.memorability },
+                    { label: 'Brandability', value: score.brandability },
+                    { label: 'Trust', value: score.trust },
+                    { label: 'Premium Feel', value: score.premium },
+                    { label: 'Startup Feel', value: score.startup },
+                    { label: 'Logo Compat.', value: score.logoCompat }
+                ];
+
+                grid.innerHTML = items.map(item => `
+                    <div class="score-grid-item">
+                        <span class="score-label">${item.label}</span>
+                        <span class="score-value">${item.value}%</span>
+                        <div class="score-bar">
+                            <div class="score-bar-fill" style="width: ${item.value}%"></div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            toggleAutoGenerate() {
+                this.isAutoGenerating = !this.isAutoGenerating;
+                if (this.isAutoGenerating) {
+                    this.elements.autoBtn.classList.add('active');
+                    this.elements.autoBtn.innerHTML = '<span class="icon">⏸</span> Auto ON';
+                    this.autoInterval = setInterval(() => {
+                        this.generateName();
+                    }, 5000);
+                } else {
+                    this.elements.autoBtn.classList.remove('active');
+                    this.elements.autoBtn.innerHTML = '<span class="icon">▶</span> Auto OFF';
+                    if (this.autoInterval) {
+                        clearInterval(this.autoInterval);
+                        this.autoInterval = null;
+                    }
+                }
+            }
+
+            likeCurrentName() {
+                if (!this.currentName) return;
+
+                const savedNames = Storage.getSavedNames();
+                const existing = savedNames.find(n => n.name === this.currentName);
+
+                if (existing) {
+                    // Un-like
+                    Storage.removeSavedName(this.currentName);
+                    this.elements.likeBtn.classList.remove('liked');
+                    this.elements.likeBtn.querySelector('.icon').textContent = '🤍';
+                    this.showToast('Removed from saved', 'warning');
+                } else {
+                    // Like
+                    const added = Storage.addSavedName({
+                        name: this.currentName,
+                        favorite: false,
+                        score: this.currentScore
+                    });
+
+                    if (added) {
+                        this.elements.likeBtn.classList.add('liked');
+                        this.elements.likeBtn.querySelector('.icon').textContent = '❤️';
+                        this.showToast(`✨ "${this.currentName}" saved to favorites`, 'success');
+                    } else {
+                        this.showToast('Already in saved list', 'warning');
+                    }
+                }
+
+                this.updateSavedCount();
+                this.renderSaved();
+            }
+
+            superLikeCurrentName() {
+                if (!this.currentName) return;
+
+                const savedNames = Storage.getSavedNames();
+                const exists = savedNames.some(n => n.name === this.currentName);
+
+                if (!exists) {
+                    Storage.addSavedName({
+                        name: this.currentName,
+                        favorite: true,
+                        score: this.currentScore
+                    });
+                }
+
+                const isSuper = Storage.isSuperFavorite(this.currentName);
+                if (isSuper) {
+                    // Remove from super favorites
+                    const superFavs = Storage.getSuperFavorites();
+                    const updated = superFavs.filter(n => n !== this.currentName);
+                    Storage.setSuperFavorites(updated);
+                    this.showToast(`Removed "${this.currentName}" from super favorites`, 'warning');
+                } else {
+                    Storage.toggleSuperFavorite(this.currentName);
+                    this.showToast(`⭐ "${this.currentName}" is now a super favorite!`, 'success');
+                }
+
+                this.updateSavedCount();
+                this.renderSaved();
+                this.elements.likeBtn.classList.add('liked');
+                this.elements.likeBtn.querySelector('.icon').textContent = '❤️';
+            }
+
+            renderSaved() {
+                const savedNames = Storage.getSavedNames();
+                const superFavs = Storage.getSuperFavorites();
+                const searchTerm = this.searchTerm;
+
+                // Filter by search
+                let filtered = savedNames;
+                if (searchTerm) {
+                    filtered = savedNames.filter(n =>
+                        n.name.toLowerCase().includes(searchTerm)
+                    );
+                }
+
+                // Render saved list
+                const list = this.elements.savedList;
+                if (filtered.length === 0) {
+                    list.innerHTML = `
+                        <div style="text-align:center;padding:40px;color:var(--text-muted);">
+                            ${searchTerm ? 'No matching names found' : 'No saved names yet. Start liking some brand names!'}
+                        </div>
+                    `;
+                } else {
+                    list.innerHTML = filtered.map(item => `
+                        <div class="saved-item" data-name="${item.name}">
+                            <span class="name-text">${item.name}</span>
+                            <span class="name-meta">
+                                <span>⭐ ${item.score?.total || 0}</span>
+                            </span>
+                            <div class="action-group">
+                                <button class="action-btn favorite" data-action="favorite" data-name="${item.name}" title="Toggle Favorite">
+                                    ${item.favorite ? '❤️' : '🤍'}
+                                </button>
+                                <button class="action-btn super-favorite" data-action="super" data-name="${item.name}" title="Toggle Super Favorite">
+                                    ${superFavs.includes(item.name) ? '⭐' : '☆'}
+                                </button>
+                                <button class="action-btn" data-action="copy" data-name="${item.name}" title="Copy">📋</button>
+                                <button class="action-btn" data-action="share" data-name="${item.name}" title="Share">📤</button>
+                                <button class="action-btn delete" data-action="delete" data-name="${item.name}" title="Delete">🗑</button>
+                            </div>
+                        </div>
+                    `).join('');
+
+                    // Add event listeners
+                    list.querySelectorAll('.action-btn').forEach(btn => {
+                        btn.addEventListener('click', (e) => {
+                            const action = btn.dataset.action;
+                            const name = btn.dataset.name;
+                            this.handleSavedAction(action, name);
+                            e.stopPropagation();
+                        });
+                    });
+
+                    // Double click to super favorite
+                    list.querySelectorAll('.saved-item').forEach(item => {
+                        item.addEventListener('dblclick', () => {
+                            const name = item.dataset.name;
+                            const isSuper = Storage.toggleSuperFavorite(name);
+                            this.showToast(
+                                isSuper ?
+                                `⭐ "${name}" is now a super favorite!` :
+                                `Removed "${name}" from super favorites`,
+                                isSuper ? 'success' : 'warning'
+                            );
+                            this.updateSavedCount();
+                            this.renderSaved();
+                        });
+                    });
+                }
+
+                // Render super favorites
+                const superList = this.elements.superFavoritesList;
+                const superItems = savedNames.filter(n => superFavs.includes(n.name));
+
+                if (superItems.length === 0) {
+                    superList.innerHTML = `
+                        <div style="text-align:center;padding:24px;color:var(--text-muted);">
+                            No super favorites yet. Double-click a saved name to make it a super favorite!
+                        </div>
+                    `;
+                } else {
+                    superList.innerHTML = superItems.map(item => `
+                        <div class="saved-item">
+                            <span class="name-text">⭐ ${item.name}</span>
+                            <span class="name-meta">
+                                <span>⭐ ${item.score?.total || 0}</span>
+                            </span>
+                            <div class="action-group">
+                                <button class="action-btn" data-action="copy" data-name="${item.name}" title="Copy">📋</button>
+                                <button class="action-btn" data-action="share" data-name="${item.name}" title="Share">📤</button>
+                                <button class="action-btn delete" data-action="delete" data-name="${item.name}" title="Delete">🗑</button>
+                            </div>
+                        </div>
+                    `).join('');
+
+                    superList.querySelectorAll('.action-btn').forEach(btn => {
+                        btn.addEventListener('click', (e) => {
+                            const action = btn.dataset.action;
+                            const name = btn.dataset.name;
+                            this.handleSavedAction(action, name);
+                            e.stopPropagation();
+                        });
+                    });
+                }
+
+                // Update stats
+                this.updateStats();
+            }
+
+            handleSavedAction(action, name) {
+                switch (action) {
+                    case 'favorite':
+                        const isFavorite = Storage.toggleFavorite(name);
+                        this.showToast(
+                            isFavorite ? `❤️ "${name}" marked as favorite` : `Removed "${name}" from favorites`,
+                            isFavorite ? 'success' : 'warning'
+                        );
+                        this.renderSaved();
+                        break;
+
+                    case 'super':
+                        const isSuper = Storage.toggleSuperFavorite(name);
+                        this.showToast(
+                            isSuper ? `⭐ "${name}" is now a super favorite!` : `Removed "${name}" from super favorites`,
+                            isSuper ? 'success' : 'warning'
+                        );
+                        this.renderSaved();
+                        break;
+
+                    case 'copy':
+                        navigator.clipboard.writeText(name).then(() => {
+                            this.showToast(`📋 "${name}" copied to clipboard`, 'success');
+                        }).catch(() => {
+                            // Fallback
+                            const textarea = document.createElement('textarea');
+                            textarea.value = name;
+                            document.body.appendChild(textarea);
+                            textarea.select();
+                            document.execCommand('copy');
+                            textarea.remove();
+                            this.showToast(`📋 "${name}" copied to clipboard`, 'success');
+                        });
+                        break;
+
+                    case 'share':
+                        if (navigator.share) {
+                            navigator.share({
+                                title: 'Brand Name',
+                                text: `Check out this brand name: ${name}`,
+                                url: window.location.href
+                            }).catch(() => {});
+                        } else {
+                            // Fallback - copy to clipboard
+                            navigator.clipboard.writeText(name).then(() => {
+                                this.showToast(`📤 "${name}" copied for sharing`, 'success');
+                            });
+                        }
+                        break;
+
+                    case 'delete':
+                        Storage.removeSavedName(name);
+                        this.showToast(`🗑 "${name}" deleted from saved`, 'error');
+                        this.renderSaved();
+                        this.updateSavedCount();
+                        break;
+                }
+            }
+
+            updateStats() {
+                const savedNames = Storage.getSavedNames();
+                const superFavs = Storage.getSuperFavorites();
+                const favorites = savedNames.filter(n => n.favorite);
+
+                this.elements.totalSaved.textContent = savedNames.length;
+                this.elements.favoriteCount.textContent = favorites.length;
+                this.elements.superFavoriteCount.textContent = superFavs.length;
+            }
+
+            updateSavedCount() {
+                const savedNames = Storage.getSavedNames();
+                this.elements.savedCount.textContent = savedNames.length;
+                this.elements.savedCount.style.display = savedNames.length > 0 ? 'inline' : 'none';
+            }
+
+            exportData() {
+                const format = prompt('Select export format (txt, csv, json):', 'json');
+                if (!format) return;
+
+                const validFormats = ['txt', 'csv', 'json'];
+                if (!validFormats.includes(format.toLowerCase())) {
+                    this.showToast('Invalid format. Please use txt, csv, or json.', 'error');
+                    return;
+                }
+
+                const data = Storage.exportNames(format.toLowerCase());
+                const blob = new Blob([data], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `brand_names.${format.toLowerCase()}`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                URL.revokeObjectURL(url);
+
+                this.showToast(`📤 Exported ${Storage.getSavedNames().length} names as ${format.toUpperCase()}`, 'success');
+            }
+
+            importData(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const content = event.target.result;
+                        const extension = file.name.split('.').pop().toLowerCase();
+
+                        let imported = 0;
+                        if (extension === 'json') {
+                            const data = JSON.parse(content);
+                            imported = Storage.importNames(data);
+                        } else if (extension === 'csv' || extension === 'txt') {
+                            imported = Storage.importNames(content);
+                        } else {
+                            this.showToast('Unsupported file format. Use txt, csv, or json.', 'error');
+                            return;
+                        }
+
+                        this.showToast(`📥 Imported ${imported} new names successfully!`, 'success');
+                        this.renderSaved();
+                        this.updateSavedCount();
+                    } catch (error) {
+                        this.showToast('Error importing file. Please check the format.', 'error');
+                    }
+                };
+
+                reader.readAsText(file);
+                this.elements.importFile.value = '';
+            }
+
+            showToast(message, type = 'info') {
+                const container = this.elements.toastContainer;
+                const toast = document.createElement('div');
+                toast.className = `toast ${type}`;
+                toast.textContent = message;
+
+                container.appendChild(toast);
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    toast.style.transform = 'translateX(100px)';
+                    setTimeout(() => toast.remove(), 300);
+                }, 3000);
+            }
+        }
+
+        // ============================================
+        // INITIALIZE APP
+        // ============================================
+        document.addEventListener('DOMContentLoaded', () => {
+            const app = new UI();
+            // Make app globally accessible for debugging
+            window.app = app;
+        });
+    </script>
+
+</body>
+</html>
