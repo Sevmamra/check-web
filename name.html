@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NexBrand - Professional Name Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --danger: #ef4444;
+            --success: #10b981;
+            --warning: #f59e0b;
+        }
+
+        [data-theme="light"] {
+            --bg-color: #f1f5f9;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(0, 0, 0, 0.1);
+            --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Outfit', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            transition: all 0.3s ease;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        @media (min-width: 992px) {
+            .container {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 24px;
+            box-shadow: var(--glass-shadow);
+        }
+
+        header {
+            width: 100%;
+            max-width: 1200px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px 24px;
+        }
+
+        header h1 {
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            background: linear-gradient(45deg, #3b82f6, #10b981);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        button {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            color: var(--text-main);
+            padding: 10px 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        button:hover {
+            background: var(--glass-border);
+            transform: translateY(-2px);
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+        }
+
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        select, input {
+            width: 100%;
+            padding: 12px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            color: var(--text-main);
+            border-radius: 12px;
+            outline: none;
+            font-size: 14px;
+        }
+
+        select option {
+            background: var(--bg-color);
+            color: var(--text-main);
+        }
+
+        .main-display {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .generated-name {
+            font-size: 48px;
+            font-weight: 800;
+            margin-bottom: 10px;
+            letter-spacing: -1px;
+            word-break: break-all;
+        }
+
+        .action-row {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .scores-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .score-item {
+            background: rgba(0,0,0,0.2);
+            padding: 12px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+        }
+
+        [data-theme="light"] .score-item {
+            background: rgba(255,255,255,0.5);
+        }
+
+        .score-value {
+            font-weight: 800;
+            color: var(--success);
+        }
+
+        .top-suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .suggestion-chip {
+            padding: 8px 16px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        
+        .suggestion-chip:hover {
+            background: var(--accent);
+            color: white;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            border-radius: 12px;
+            cursor: pointer;
+            background: var(--glass-bg);
+            border: 1px solid transparent;
+            font-weight: 600;
+        }
+
+        .tab.active {
+            border-color: var(--accent);
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .saved-list {
+            max-height: 500px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .saved-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .saved-list::-webkit-scrollbar-thumb {
+            background: var(--glass-border);
+            border-radius: 10px;
+        }
+
+        .saved-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            transition: 0.2s;
+            user-select: none;
+        }
+
+        .saved-item:hover {
+            border-color: var(--text-muted);
+        }
+
+        .saved-item.super-fav {
+            border-color: var(--warning);
+            background: rgba(245, 158, 11, 0.05);
+        }
+
+        .item-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .item-actions button {
+            padding: 6px;
+            border-radius: 8px;
+            font-size: 12px;
+        }
+
+        .import-export-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .import-export-row button {
+            flex: 1;
+            font-size: 12px;
+        }
+
+        .hidden { display: none !important; }
+        
+        /* Utility */
+        .w-full { width: 100%; }
+        .mt-4 { margin-top: 16px; }
+    </style>
+</head>
+<body>
+
+    <header class="glass-card">
+        <h1>NexBrand</h1>
+        <button id="themeToggle">🌓 Theme</button>
+    </header>
+
+    <div class="container">
+        <!-- Generator Section -->
+        <div class="glass-card">
+            <div class="controls-grid">
+                <select id="lengthSelect">
+                    <option value="3">3 Letters</option>
+                    <option value="4">4 Letters</option>
+                    <option value="5" selected>5 Letters</option>
+                    <option value="6">6 Letters</option>
+                    <option value="7">7 Letters</option>
+                    <option value="8">8 Letters</option>
+                </select>
+
+                <select id="styleSelect">
+                    <option value="pronounceable">Pronounceable</option>
+                    <option value="luxury">Luxury</option>
+                    <option value="tech">Tech</option>
+                    <option value="startup">Startup</option>
+                    <option value="indian">Indian</option>
+                    <option value="global">Global</option>
+                    <option value="premium">Premium</option>
+                    <option value="minimal">Minimal</option>
+                    <option value="fast">Fast</option>
+                    <option value="modern">Modern</option>
+                    <option value="family">Family Trust</option>
+                    <option value="ai">AI Brand</option>
+                    <option value="random">Random Flow</option>
+                </select>
+            </div>
+
+            <div class="controls-grid">
+                <button id="generateBtn" class="btn-primary w-full">✨ Generate</button>
+                <button id="autoToggleBtn" class="w-full">⏱ Auto: OFF</button>
+            </div>
+
+            <div class="main-display">
+                <div class="generated-name" id="currentName">NexBrand</div>
+                <div class="action-row">
+                    <button id="likeBtn">❤️ Like</button>
+                    <button id="copyBtn">📋 Copy</button>
+                </div>
+            </div>
+
+            <div class="scores-grid" id="scoresGrid">
+                <!-- Populated by JS -->
+            </div>
+
+            <div class="mt-4">
+                <h4 style="color: var(--text-muted); font-size: 14px; margin-bottom: 10px;">Top 5 Suggestions</h4>
+                <div class="top-suggestions" id="topSuggestions">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Saved Section -->
+        <div class="glass-card">
+            <input type="text" id="searchInput" placeholder="🔍 Search saved names..." style="margin-bottom: 15px;">
+            
+            <div class="tabs">
+                <div class="tab active" id="tabAll">All Saved</div>
+                <div class="tab" id="tabSuper">⭐ Super Favorites</div>
+            </div>
+
+            <div class="saved-list" id="savedList">
+                <!-- Populated by JS -->
+            </div>
+
+            <div class="import-export-row">
+                <button onclick="exportData('txt')">📤 TXT</button>
+                <button onclick="exportData('csv')">📤 CSV</button>
+                <button onclick="exportData('json')">📤 JSON</button>
+            </div>
+            <div class="import-export-row">
+                <input type="file" id="importFile" accept=".txt,.csv,.json" class="hidden">
+                <button onclick="document.getElementById('importFile').click()" class="w-full">📥 Import Data</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- DATA & ALGORITHMS ---
+        const vowels = ['a', 'e', 'i', 'o', 'u'];
+        const consonants = ['b', 'c', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'm', 'n', 'p', 'r', 's', 't', 'v', 'w', 'x', 'y', 'z'];
+        const knownBrands = ['uber', 'zepto', 'kodak', 'rolex', 'sony', 'amul', 'apple', 'google', 'meta', 'nike', 'zomato', 'swiggy', 'tata', 'reliance'];
+
+        const styleAffixes = {
+            tech: { pre: ['syn', 'cy', 'te', 'by', 'ai', 'io', 'ne', 'xo'], post: ['tron', 'nex', 'bot', 'ify', 'os', 'ix'] },
+            luxury: { pre: ['au', 'lu', 'no', 've', 'bl', 'mo', 'om'], post: ['ra', 'xe', 'va', 'el', 'anc', 'ont', 'ia'] },
+            startup: { pre: ['zo', 'go', 'ly', 'ki', 'vu', 'qa'], post: ['ify', 'oo', 'hq', 'io', 'up'] },
+            indian: { pre: ['ve', 'ta', 'ra', 'na', 'in', 'om', 'sh'], post: ['da', 'ra', 'aj', 'av', 'nd', 'am', 'ti'] },
+            ai: { pre: ['ai', 'sy', 'ne', 'co', 'ml'], post: ['nt', 'ai', 'on', 'ex', 'io'] }
+        };
+
+        // Strict pattern definitions to avoid random gibberish
+        const patterns = {
+            3: ['CVC', 'VCV'],
+            4: ['CVCV', 'CVCC', 'VCCV', 'VCVC'],
+            5: ['CVCVC', 'CVCCV', 'VCCVC', 'VCVCV', 'CCVCV'],
+            6: ['CVCVCV', 'CVCCVC', 'VCCVCV', 'CVVCVC', 'CCVCCV'],
+            7: ['CVCVCVC', 'CVCCVCV', 'VCCVCVC', 'CVCVCCV'],
+            8: ['CVCVCVCV', 'CVCCVCCV', 'VCCVCVCV', 'CVCVVCVC']
+        };
+
+        // --- STATE MANAGEMENT ---
+        let appState = {
+            savedNames: JSON.parse(localStorage.getItem('nexbrand_saved')) || [],
+            currentName: '',
+            autoGenActive: false,
+            autoGenInterval: null,
+            activeTab: 'all', // 'all' or 'super'
+            theme: localStorage.getItem('nexbrand_theme') || 'dark'
+        };
+
+        // --- CORE LOGIC ---
+        function getRandomItem(arr) {
+            return arr[Math.floor(Math.random() * arr.length)];
+        }
+
+        function generateSyllabicName(length, style) {
+            let name = "";
+            let attempts = 0;
+            
+            while (attempts < 50) {
+                let pattern = getRandomItem(patterns[length]);
+                name = "";
+                
+                // Inject style specific logic if applicable and length permits
+                if (styleAffixes[style] && length >= 4 && Math.random() > 0.5) {
+                    let isPrefix = Math.random() > 0.5;
+                    let affix = isPrefix ? getRandomItem(styleAffixes[style].pre) : getRandomItem(styleAffixes[style].post);
+                    
+                    let remainingLen = length - affix.length;
+                    if (remainingLen > 0) {
+                        let subPattern = patterns[remainingLen] ? getRandomItem(patterns[remainingLen]) : (remainingLen === 1 ? (Math.random()>.5?'C':'V') : (remainingLen===2?'CV':'CVC'));
+                        let subName = "";
+                        for (let char of subPattern) {
+                            subName += char === 'C' ? getRandomItem(consonants) : getRandomItem(vowels);
+                        }
+                        name = isPrefix ? affix + subName : subName + affix;
+                    }
+                }
+
+                // Fallback to strict pattern generation
+                if (!name || name.length !== length) {
+                    name = "";
+                    for (let char of pattern) {
+                        name += char === 'C' ? getRandomItem(consonants) : getRandomItem(vowels);
+                    }
+                }
+
+                name = name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+
+                // Validation checks
+                let isKnown = knownBrands.includes(name.toLowerCase());
+                let hasTripleLetter = /(.)\1\1/.test(name.toLowerCase());
+                
+                if (!isKnown && !hasTripleLetter && name.length === parseInt(length)) {
+                    return name;
+                }
+                attempts++;
+            }
+            return name || "Error";
+        }
+
+        function calculateScores(name) {
+            let score = (base, max) => Math.min(Math.max(base + Math.floor(Math.random() * 15 - 5), 40), max);
+            
+            let len = name.length;
+            let vCount = (name.match(/[aeiou]/gi) || []).length;
+            let balance = vCount / len;
+            
+            let pronunciation = balance >= 0.3 && balance <= 0.6 ? score(85, 99) : score(60, 80);
+            let memorability = len <= 5 ? score(90, 99) : score(70, 85);
+            let brandability = score(80, 95);
+            let trust = score(75, 95);
+            let premium = score(70, 98);
+            let startup = len <= 6 ? score(85, 99) : score(65, 80);
+            let logoComp = score(75, 99);
+            
+            let total = Math.floor((pronunciation + memorability + brandability + trust + premium + startup + logoComp) / 7);
+
+            return { Pronunciation: pronunciation, Memorability: memorability, Brandability: brandability, Trust: trust, 'Premium Feel': premium, 'Startup Feel': startup, 'Logo Match': logoComp, Total: total };
+        }
+
+        // --- UI UPDATES ---
+        function updateScores(scores) {
+            const grid = document.getElementById('scoresGrid');
+            grid.innerHTML = '';
+            for (let [key, value] of Object.entries(scores)) {
+                let color = value >= 90 ? 'var(--success)' : (value >= 75 ? 'var(--warning)' : 'var(--danger)');
+                grid.innerHTML += `
+                    <div class="score-item">
+                        <span>${key}</span>
+                        <span class="score-value" style="color: ${color}">${value}/100</span>
+                    </div>
+                `;
+            }
+        }
+
+        function triggerGenerate() {
+            const length = document.getElementById('lengthSelect').value;
+            const style = document.getElementById('styleSelect').value;
+            
+            appState.currentName = generateSyllabicName(length, style);
+            document.getElementById('currentName').innerText = appState.currentName;
+            
+            updateScores(calculateScores(appState.currentName));
+            generateTopSuggestions(length, style);
+        }
+
+        function generateTopSuggestions(length, style) {
+            const container = document.getElementById('topSuggestions');
+            container.innerHTML = '';
+            for (let i = 0; i < 5; i++) {
+                let name = generateSyllabicName(length, style);
+                let chip = document.createElement('div');
+                chip.className = 'suggestion-chip';
+                chip.innerText = name;
+                chip.onclick = () => {
+                    appState.currentName = name;
+                    document.getElementById('currentName').innerText = name;
+                    updateScores(calculateScores(name));
+                };
+                container.appendChild(chip);
+            }
+        }
+
+        function toggleAuto() {
+            const btn = document.getElementById('autoToggleBtn');
+            appState.autoGenActive = !appState.autoGenActive;
+            
+            if (appState.autoGenActive) {
+                btn.innerText = '⏱ Auto: ON';
+                btn.style.background = 'var(--success)';
+                btn.style.color = 'white';
+                appState.autoGenInterval = setInterval(triggerGenerate, 5000);
+            } else {
+                btn.innerText = '⏱ Auto: OFF';
+                btn.style.background = 'var(--glass-bg)';
+                btn.style.color = 'var(--text-main)';
+                clearInterval(appState.autoGenInterval);
+            }
+        }
+
+        // --- STORAGE & LIST MANAGEMENT ---
+        function saveCurrentName() {
+            if (!appState.currentName) return;
+            let exists = appState.savedNames.find(n => n.name === appState.currentName);
+            if (!exists) {
+                appState.savedNames.push({ name: appState.currentName, superFav: false, timestamp: Date.now() });
+                syncStorage();
+                renderSavedList();
+                showToast('Name Saved! ❤️');
+            }
+        }
+
+        function toggleSuperFav(nameStr) {
+            let item = appState.savedNames.find(n => n.name === nameStr);
+            if (item) {
+                item.superFav = !item.superFav;
+                syncStorage();
+                renderSavedList();
+            }
+        }
+
+        function deleteName(nameStr) {
+            appState.savedNames = appState.savedNames.filter(n => n.name !== nameStr);
+            syncStorage();
+            renderSavedList();
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => showToast('Copied to clipboard! 📋'));
+        }
+
+        function shareName(text) {
+            if (navigator.share) {
+                navigator.share({ title: 'Brand Name Idea', text: text }).catch(console.error);
+            } else {
+                copyToClipboard(text);
+            }
+        }
+
+        function syncStorage() {
+            localStorage.setItem('nexbrand_saved', JSON.stringify(appState.savedNames));
+        }
+
+        function renderSavedList() {
+            const list = document.getElementById('savedList');
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            list.innerHTML = '';
+
+            let filtered = appState.savedNames.filter(item => item.name.toLowerCase().includes(query));
+            
+            if (appState.activeTab === 'super') {
+                filtered = filtered.filter(item => item.superFav);
+            }
+
+            // Sort newest first
+            filtered.sort((a, b) => b.timestamp - a.timestamp);
+
+            filtered.forEach(item => {
+                let div = document.createElement('div');
+                div.className = `saved-item ${item.superFav ? 'super-fav' : ''}`;
+                // Double click event applied structurally
+                div.ondblclick = () => toggleSuperFav(item.name);
+                
+                div.innerHTML = `
+                    <span style="font-weight: 600; font-size: 18px;">
+                        ${item.superFav ? '⭐' : ''} ${item.name}
+                    </span>
+                    <div class="item-actions">
+                        <button onclick="toggleSuperFav('${item.name}')" title="Super Favorite">⭐</button>
+                        <button onclick="copyToClipboard('${item.name}')" title="Copy">📋</button>
+                        <button onclick="shareName('${item.name}')" title="Share">📤</button>
+                        <button onclick="deleteName('${item.name}')" style="color: var(--danger);" title="Delete">🗑</button>
+                    </div>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        // --- IMPORT / EXPORT ---
+        function exportData(format) {
+            if(appState.savedNames.length === 0) return alert("No saved names to export.");
+            let data = "";
+            let mime = "";
+            let ext = "";
+
+            if (format === 'json') {
+                data = JSON.stringify(appState.savedNames, null, 2);
+                mime = "application/json";
+                ext = "json";
+            } else if (format === 'csv') {
+                data = "Name,SuperFavorite,Timestamp\n" + appState.savedNames.map(n => `${n.name},${n.superFav},${n.timestamp}`).join("\n");
+                mime = "text/csv";
+                ext = "csv";
+            } else {
+                data = appState.savedNames.map(n => `${n.superFav ? '[SUPER] ' : ''}${n.name}`).join("\n");
+                mime = "text/plain";
+                ext = "txt";
+            }
+
+            const blob = new Blob([data], { type: mime });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `NexBrand_Export.${ext}`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        document.getElementById('importFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                const content = evt.target.result;
+                try {
+                    if (file.name.endsWith('.json')) {
+                        let parsed = JSON.parse(content);
+                        if (Array.isArray(parsed)) {
+                            appState.savedNames = parsed;
+                        }
+                    } else if (file.name.endsWith('.csv')) {
+                        let rows = content.split('\n').slice(1);
+                        rows.forEach(row => {
+                            let [name, fav, ts] = row.split(',');
+                            if(name && name.trim()) {
+                                if(!appState.savedNames.find(n => n.name === name)) {
+                                    appState.savedNames.push({name: name.trim(), superFav: fav === 'true', timestamp: ts || Date.now()});
+                                }
+                            }
+                        });
+                    } else if (file.name.endsWith('.txt')) {
+                        let lines = content.split('\n');
+                        lines.forEach(line => {
+                            let clean = line.trim();
+                            if(clean) {
+                                let isSuper = clean.startsWith('[SUPER]');
+                                let name = clean.replace('[SUPER]', '').trim();
+                                if(!appState.savedNames.find(n => n.name === name)) {
+                                    appState.savedNames.push({name: name, superFav: isSuper, timestamp: Date.now()});
+                                }
+                            }
+                        });
+                    }
+                    syncStorage();
+                    renderSavedList();
+                    showToast('Data Imported Successfully!');
+                } catch(err) {
+                    alert('Error parsing file.');
+                }
+            };
+            reader.readAsText(file);
+        });
+
+        // --- UTILS & EVENT LISTENERS ---
+        function showToast(msg) {
+            let toast = document.createElement('div');
+            toast.innerText = msg;
+            toast.style.cssText = "position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--success);color:white;padding:10px 20px;border-radius:20px;font-weight:600;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,0.2);";
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 2000);
+        }
+
+        function setTheme(theme) {
+            document.body.setAttribute('data-theme', theme);
+            localStorage.setItem('nexbrand_theme', theme);
+            appState.theme = theme;
+        }
+
+        // Bindings
+        document.getElementById('themeToggle').onclick = () => {
+            setTheme(appState.theme === 'dark' ? 'light' : 'dark');
+        };
+
+        document.getElementById('generateBtn').onclick = triggerGenerate;
+        document.getElementById('autoToggleBtn').onclick = toggleAuto;
+        document.getElementById('likeBtn').onclick = saveCurrentName;
+        document.getElementById('copyBtn').onclick = () => copyToClipboard(appState.currentName);
+        document.getElementById('searchInput').oninput = renderSavedList;
+
+        document.getElementById('tabAll').onclick = (e) => {
+            appState.activeTab = 'all';
+            document.getElementById('tabAll').classList.add('active');
+            document.getElementById('tabSuper').classList.remove('active');
+            renderSavedList();
+        };
+
+        document.getElementById('tabSuper').onclick = (e) => {
+            appState.activeTab = 'super';
+            document.getElementById('tabSuper').classList.add('active');
+            document.getElementById('tabAll').classList.remove('active');
+            renderSavedList();
+        };
+
+        // Initialize App
+        setTheme(appState.theme);
+        triggerGenerate();
+        renderSavedList();
+
+    </script>
+</body>
+</html>
