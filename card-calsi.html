@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Milk Card Calculator</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { display: flex; justify-content: center; align-items: center; min-height: 100vh; background-color: #f0f2f5; }
+        .calculator { width: 100%; max-width: 420px; background: #fff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); overflow: hidden; }
+        .screen { background: #003c71; color: #fff; padding: 30px 20px; display: flex; flex-direction: column; align-items: flex-end; border-bottom: 4px solid #4CAF50; }
+        .header { width: 100%; display: flex; justify-content: space-between; opacity: 0.7; font-size: 0.9rem; margin-bottom: 20px; text-transform: uppercase; font-weight: bold; }
+        .liter-input { font-size: 1.8rem; color: #e0e0e0; margin-bottom: 10px; min-height: 40px; }
+        .total-amount { font-size: 3.5rem; font-weight: bold; color: #4CAF50; min-height: 70px; line-height: 1; }
+        .total-amount::before { content: '₹ '; font-size: 2.5rem; }
+        .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: #ccc; }
+        .btn { border: none; background: #fff; padding: 30px; font-size: 1.8rem; font-weight: 600; color: #333; cursor: pointer; transition: background 0.1s; touch-action: manipulation; }
+        .btn:active { background: #e0e0e0; }
+        .btn.action { color: #d32f2f; background: #f9f9f9; font-size: 1.2rem; }
+        .btn.action:active { background: #f0f0f0; }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <div class="screen">
+            <div class="header">
+                <span>Mother Milk Palace</span>
+                <span>Rate: ₹65/L</span>
+            </div>
+            <div class="liter-input" id="literDisplay">0 L</div>
+            <div class="total-amount" id="amountDisplay">0</div>
+        </div>
+        <div class="keypad">
+            <button class="btn" onclick="appendNumber('1')">1</button>
+            <button class="btn" onclick="appendNumber('2')">2</button>
+            <button class="btn" onclick="appendNumber('3')">3</button>
+            <button class="btn" onclick="appendNumber('4')">4</button>
+            <button class="btn" onclick="appendNumber('5')">5</button>
+            <button class="btn" onclick="appendNumber('6')">6</button>
+            <button class="btn" onclick="appendNumber('7')">7</button>
+            <button class="btn" onclick="appendNumber('8')">8</button>
+            <button class="btn" onclick="appendNumber('9')">9</button>
+            <button class="btn" onclick="appendNumber('.')">.</button>
+            <button class="btn" onclick="appendNumber('0')">0</button>
+            <button class="btn" onclick="appendNumber('00')">00</button>
+            <button class="btn action" onclick="clearAll()" style="grid-column: span 2;">CLEAR</button>
+            <button class="btn action" onclick="backspace()">⌫ BACK</button>
+        </div>
+    </div>
+
+    <script>
+        let currentInput = '';
+        const ratePerLiter = 65;
+
+        function updateDisplay() {
+            const literDisplay = document.getElementById('literDisplay');
+            const amountDisplay = document.getElementById('amountDisplay');
+            
+            literDisplay.innerText = currentInput === '' ? '0 L' : currentInput + ' L';
+            
+            if (currentInput === '' || currentInput === '.') {
+                amountDisplay.innerText = '0';
+                return;
+            }
+
+            const liters = parseFloat(currentInput);
+            const amount = liters * ratePerLiter;
+            
+            amountDisplay.innerText = Number.isInteger(amount) ? amount : amount.toFixed(2);
+        }
+
+        function appendNumber(num) {
+            if (num === '.' && currentInput.includes('.')) return; 
+            if (currentInput === '0' && num !== '.') {
+                currentInput = num;
+            } else {
+                currentInput += num;
+            }
+            updateDisplay();
+        }
+
+        function clearAll() {
+            currentInput = '';
+            updateDisplay();
+        }
+
+        function backspace() {
+            currentInput = currentInput.slice(0, -1);
+            updateDisplay();
+        }
+    </script>
+</body>
+</html>
