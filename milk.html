@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MMP Route Tracker</title>
+    <title>MMP Delivery</title>
     <style>
         :root {
             --bg-color: #f4f4f9;
@@ -46,7 +46,6 @@
             margin: 0 auto;
         }
 
-        /* Forms & Inputs */
         .form-group {
             margin-bottom: 15px;
         }
@@ -55,10 +54,10 @@
             display: block;
             font-size: 0.9rem;
             margin-bottom: 5px;
-            font-weight: 500;
+            font-weight: bold;
         }
 
-        input[type="text"], input[type="number"], select, textarea {
+        input[type="text"], select {
             width: 100%;
             padding: 12px;
             border: 1px solid var(--border);
@@ -67,12 +66,12 @@
             background: var(--card-bg);
         }
 
-        /* Large input for Flat Number */
         #flat {
             font-size: 1.5rem;
             font-weight: bold;
             padding: 15px;
             text-align: center;
+            border: 2px solid var(--primary);
         }
 
         .society-group {
@@ -81,13 +80,14 @@
         }
 
         .btn-icon {
-            background-color: var(--text-muted);
+            background-color: var(--text-main);
             color: white;
             border: none;
             border-radius: 8px;
             width: 50px;
             font-size: 1.5rem;
             cursor: pointer;
+            font-weight: bold;
         }
 
         .checkbox-group {
@@ -105,11 +105,12 @@
             gap: 8px;
             margin: 0;
             font-size: 1rem;
+            font-weight: normal;
         }
 
         input[type="checkbox"] {
-            width: 20px;
-            height: 20px;
+            width: 22px;
+            height: 22px;
         }
 
         .btn-submit {
@@ -125,7 +126,6 @@
             margin-top: 10px;
         }
 
-        /* Route View */
         .society-block {
             margin-bottom: 20px;
         }
@@ -135,6 +135,7 @@
             padding: 10px 15px;
             font-weight: bold;
             border-radius: 8px 8px 0 0;
+            font-size: 1.1rem;
         }
 
         .customer-card {
@@ -152,12 +153,13 @@
         }
 
         .customer-card.done {
-            opacity: 0.5;
+            opacity: 0.4;
             background: #f9fafb;
         }
 
         .customer-card.done .flat-no {
             text-decoration: line-through;
+            color: var(--text-muted);
         }
 
         .flat-no {
@@ -167,15 +169,16 @@
         }
 
         .details {
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             color: var(--text-muted);
             margin-top: 4px;
+            font-weight: 500;
         }
 
         .special-note {
             color: #d97706;
-            font-weight: 500;
-            font-size: 0.85rem;
+            font-weight: bold;
+            font-size: 0.9rem;
             margin-top: 4px;
         }
 
@@ -183,17 +186,16 @@
             background-color: var(--success);
             color: white;
             border: none;
-            width: 45px;
-            height: 45px;
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
-            font-size: 1.2rem;
+            font-size: 1.5rem;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
         }
 
-        /* Bottom Navigation */
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -202,6 +204,7 @@
             background: var(--card-bg);
             display: flex;
             border-top: 1px solid var(--border);
+            z-index: 100;
         }
 
         .nav-item {
@@ -211,20 +214,28 @@
             font-weight: bold;
             color: var(--text-muted);
             cursor: pointer;
+            font-size: 1.1rem;
         }
 
         .nav-item.active {
             color: var(--primary);
-            border-top: 3px solid var(--primary);
+            border-top: 4px solid var(--primary);
+            background: #eff6ff;
         }
 
-        /* View Toggling */
-        #addView, #routeView {
+        .view-section {
             display: none;
         }
 
-        #addView.active, #routeView.active {
+        .view-section.active {
             display: block;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+            font-size: 1.1rem;
         }
     </style>
 </head>
@@ -233,7 +244,7 @@
     <header>MMP Delivery</header>
 
     <!-- ADD CUSTOMER VIEW -->
-    <div id="addView" class="container">
+    <div id="addView" class="view-section active container">
         <form id="addForm">
             <div class="form-group">
                 <label>Route Time</label>
@@ -259,12 +270,12 @@
 
             <div class="form-group">
                 <label>Milk Quantity (Optional)</label>
-                <input type="text" id="qty" placeholder="Customer batayega ya fix likho (e.g. 1.5L)">
+                <input type="text" id="qty" placeholder="Customer batayega ya fix likho (e.g. 1.5L)" autocomplete="off">
             </div>
 
             <div class="form-group">
                 <label>Milk Type & Method (Optional)</label>
-                <input type="text" id="milkType" list="milk-options" placeholder="Gaay, Bhains, Theli, Tapeli...">
+                <input type="text" id="milkType" list="milk-options" placeholder="Gaay, Theli, Tapeli, Parking..." autocomplete="off">
                 <datalist id="milk-options">
                     <option value="Direct Tapeli">
                     <option value="Theli me parking me">
@@ -279,7 +290,7 @@
 
             <div class="form-group">
                 <label>Special Note (Optional)</label>
-                <input type="text" id="note" placeholder="e.g. Baar theli latki hse...">
+                <input type="text" id="note" placeholder="e.g. 1 din chhod kar, baar theli latki hse..." autocomplete="off">
             </div>
 
             <button type="submit" class="btn-submit">Save Entry</button>
@@ -287,9 +298,9 @@
     </div>
 
     <!-- ROUTE VIEW -->
-    <div id="routeView" class="container">
+    <div id="routeView" class="view-section container">
         <div class="form-group">
-            <select id="filterRoute" onchange="renderRoute()" style="font-weight: bold; font-size: 1.1rem;">
+            <select id="filterRoute" onchange="renderRoute()" style="font-weight: bold; font-size: 1.2rem; background: #eff6ff; color: #2563eb; border-color: #2563eb;">
                 <option value="Morning">Morning Route</option>
                 <option value="Afternoon">Afternoon Route</option>
                 <option value="Evening">Evening Route</option>
@@ -301,26 +312,149 @@
     <!-- BOTTOM NAVIGATION -->
     <div class="bottom-nav">
         <div class="nav-item" id="navRoute" onclick="switchView('route')">My Route</div>
-        <div class="nav-item" id="navAdd" onclick="switchView('add')">Add Entry</div>
+        <div class="nav-item active" id="navAdd" onclick="switchView('add')">Add Entry</div>
     </div>
 
     <script>
-        let customers = JSON.parse(localStorage.getItem('mmp_delivery_data')) || [];
+        let customers = [];
 
-        // Clear only society name
+        function initApp() {
+            try {
+                const storedData = localStorage.getItem('mmp_delivery_data');
+                if (storedData) {
+                    customers = JSON.parse(storedData);
+                }
+            } catch (error) {
+                console.error("Data load error:", error);
+                customers = [];
+            }
+            
+            if (customers.length > 0) {
+                switchView('route');
+            } else {
+                switchView('add');
+            }
+        }
+
         function clearSociety() {
             const socInput = document.getElementById('society');
             socInput.value = '';
             socInput.focus();
         }
 
-        // Form Submit
         document.getElementById('addForm').addEventListener('submit', function(e) {
             e.preventDefault();
 
-            const route = document.getElementById('route').value;
-            const society = document.getElementById('society').value;
-            const flat = document.getElementById('flat').value;
-            
             const newCustomer = {
+                id: Date.now(),
+                route: document.getElementById('route').value,
+                society: document.getElementById('society').value.trim(),
+                flat: document.getElementById('flat').value.trim(),
+                qty: document.getElementById('qty').value.trim(),
+                milkType: document.getElementById('milkType').value.trim(),
+                kal: document.getElementById('kal').checked,
+                parso: document.getElementById('parso').checked,
+                note: document.getElementById('note').value.trim(),
+                status: 'pending'
+            };
 
+            customers.push(newCustomer);
+            localStorage.setItem('mmp_delivery_data', JSON.stringify(customers));
+
+            // Sirf niche wale fields clear honge, Society retain rahegi
+            document.getElementById('flat').value = '';
+            document.getElementById('qty').value = '';
+            document.getElementById('milkType').value = '';
+            document.getElementById('kal').checked = false;
+            document.getElementById('parso').checked = false;
+            document.getElementById('note').value = '';
+
+            document.getElementById('flat').focus();
+        });
+
+        function toggleStatus(id) {
+            const index = customers.findIndex(c => c.id === id);
+            if (index > -1) {
+                customers[index].status = customers[index].status === 'done' ? 'pending' : 'done';
+                localStorage.setItem('mmp_delivery_data', JSON.stringify(customers));
+                renderRoute();
+            }
+        }
+
+        function renderRoute() {
+            const listDiv = document.getElementById('routeList');
+            const currentRoute = document.getElementById('filterRoute').value;
+            
+            const filtered = customers.filter(c => c.route === currentRoute);
+            
+            if (filtered.length === 0) {
+                listDiv.innerHTML = '<div class="empty-state">Is route mein koi entry nahi hai. Nayi entry add karein.</div>';
+                return;
+            }
+
+            const grouped = {};
+            filtered.forEach(c => {
+                if (!grouped[c.society]) grouped[c.society] = [];
+                grouped[c.society].push(c);
+            });
+
+            let html = '';
+            for (const society in grouped) {
+                html += `<div class="society-block"><div class="society-title">${society}</div>`;
+                
+                grouped[society].forEach(c => {
+                    const doneClass = c.status === 'done' ? 'done' : '';
+                    let detailsArr = [];
+                    if (c.qty) detailsArr.push(c.qty);
+                    if (c.milkType) detailsArr.push(c.milkType);
+                    
+                    let daysInfo = [];
+                    if (c.kal) daysInfo.push('Kal dena hai');
+                    if (c.parso) daysInfo.push('Parso dena hai');
+                    if (daysInfo.length > 0) detailsArr.push(`[${daysInfo.join(', ')}]`);
+
+                    html += `
+                        <div class="customer-card ${doneClass}">
+                            <div>
+                                <div class="flat-no">${c.flat}</div>
+                                ${detailsArr.length > 0 ? `<div class="details">${detailsArr.join(' | ')}</div>` : ''}
+                                ${c.note ? `<div class="special-note">⚠️ ${c.note}</div>` : ''}
+                            </div>
+                            <button class="btn-done" onclick="toggleStatus(${c.id})">✔</button>
+                        </div>
+                    `;
+                });
+                html += `</div>`;
+            }
+            listDiv.innerHTML = html;
+        }
+
+        function switchView(view) {
+            document.getElementById('addView').classList.remove('active');
+            document.getElementById('routeView').classList.remove('active');
+            document.getElementById('navAdd').classList.remove('active');
+            document.getElementById('navRoute').classList.remove('active');
+
+            if (view === 'add') {
+                document.getElementById('addView').classList.add('active');
+                document.getElementById('navAdd').classList.add('active');
+                
+                // Form wapas aane par route update karo
+                const savedRoute = document.getElementById('filterRoute').value;
+                document.getElementById('route').value = savedRoute;
+            } else {
+                document.getElementById('routeView').classList.add('active');
+                document.getElementById('navRoute').classList.add('active');
+                
+                // Route view par aate hi selected tab filterRoute mein set karo
+                const formRoute = document.getElementById('route').value;
+                document.getElementById('filterRoute').value = formRoute;
+                renderRoute();
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", initApp);
+    </script>
+</body>
+            </html>
+            
