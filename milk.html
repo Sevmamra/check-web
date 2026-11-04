@@ -1,390 +1,326 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Milk Delivery Tracker</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <title>MMP Route Tracker</title>
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
-            /* Prevent pull-to-refresh on mobile */
-            overscroll-behavior-y: contain; 
-        }
-        
-        /* Custom checkbox style */
-        .done-btn {
-            transition: all 0.2s ease-in-out;
-        }
-        .done-btn.completed {
-            background-color: #10b981; /* Emerald 500 */
-            border-color: #10b981;
-            color: white;
-            box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.5);
-        }
-        
-        /* Hide scrollbar for cleaner mobile look */
-        ::-webkit-scrollbar {
-            width: 0px;
-            background: transparent;
+        :root {
+            --bg-color: #f4f4f9;
+            --primary: #2563eb;
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+            --card-bg: #ffffff;
+            --border: #e5e7eb;
+            --success: #10b981;
         }
 
-        .tab-active {
-            color: #2563eb; /* Blue 600 */
-            border-top: 3px solid #2563eb;
-            background-color: #eff6ff; /* Blue 50 */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding-bottom: 70px;
+        }
+
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 15px 20px;
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .container {
+            padding: 15px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Forms & Inputs */
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        input[type="text"], input[type="number"], select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            background: var(--card-bg);
+        }
+
+        /* Large input for Flat Number */
+        #flat {
+            font-size: 1.5rem;
+            font-weight: bold;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .society-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-icon {
+            background-color: var(--text-muted);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            width: 50px;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .checkbox-group {
+            display: flex;
+            gap: 20px;
+            background: var(--card-bg);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 0;
+            font-size: 1rem;
+        }
+
+        input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+        }
+
+        .btn-submit {
+            width: 100%;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        /* Route View */
+        .society-block {
+            margin-bottom: 20px;
+        }
+
+        .society-title {
+            background: #e5e7eb;
+            padding: 10px 15px;
+            font-weight: bold;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .customer-card {
+            background: var(--card-bg);
+            padding: 15px;
+            border: 1px solid var(--border);
+            border-top: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .customer-card:last-child {
+            border-radius: 0 0 8px 8px;
+        }
+
+        .customer-card.done {
+            opacity: 0.5;
+            background: #f9fafb;
+        }
+
+        .customer-card.done .flat-no {
+            text-decoration: line-through;
+        }
+
+        .flat-no {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .details {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .special-note {
+            color: #d97706;
+            font-weight: 500;
+            font-size: 0.85rem;
+            margin-top: 4px;
+        }
+
+        .btn-done {
+            background-color: var(--success);
+            color: white;
+            border: none;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--card-bg);
+            display: flex;
+            border-top: 1px solid var(--border);
+        }
+
+        .nav-item {
+            flex: 1;
+            text-align: center;
+            padding: 15px;
+            font-weight: bold;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+
+        .nav-item.active {
+            color: var(--primary);
+            border-top: 3px solid var(--primary);
+        }
+
+        /* View Toggling */
+        #addView, #routeView {
+            display: none;
+        }
+
+        #addView.active, #routeView.active {
+            display: block;
         }
     </style>
 </head>
-<body class="text-gray-800 h-screen flex flex-col overflow-hidden">
+<body>
 
-    <!-- Header -->
-    <header class="bg-blue-600 text-white shadow-md z-10 p-4">
-        <div class="max-w-md mx-auto flex justify-between items-center">
-            <div>
-                <h1 class="text-xl font-bold tracking-wide">DairyRoute</h1>
-                <p class="text-blue-200 text-xs">Delivery Assistant</p>
+    <header>MMP Delivery</header>
+
+    <!-- ADD CUSTOMER VIEW -->
+    <div id="addView" class="container">
+        <form id="addForm">
+            <div class="form-group">
+                <label>Route Time</label>
+                <select id="route">
+                    <option value="Morning">Morning (5 - 9 AM)</option>
+                    <option value="Afternoon">Afternoon (10 - 11:30 AM)</option>
+                    <option value="Evening">Evening (5 - 8:30 PM)</option>
+                </select>
             </div>
-            <div class="flex gap-3 items-center">
-                <button onclick="resetDeliveries()" class="bg-red-500 hover:bg-red-600 px-3 py-1 rounded text-xs font-bold shadow transition-colors">
-                    Reset Dones
-                </button>
-                <div class="bg-blue-700 px-3 py-1 rounded-full text-sm font-semibold">
-                    <span id="completed-count">0</span> / <span id="total-count">0</span> Done
+
+            <div class="form-group">
+                <label>Society Name</label>
+                <div class="society-group">
+                    <input type="text" id="society" placeholder="e.g. Ganesh Green" required>
+                    <button type="button" class="btn-icon" onclick="clearSociety()">+</button>
                 </div>
             </div>
-        </div>
-    </header>
 
-    <!-- Main Content Area -->
-    <main class="flex-1 overflow-y-auto pb-20 relative" id="main-container">
-        
-        <!-- ============================================== -->
-        <!-- VIEW 1: CHECKLIST (DELIVERY ROUTE)             -->
-        <!-- ============================================== -->
-        <div id="view-checklist" class="max-w-md mx-auto p-2 w-full hidden">
-            <div class="mb-4 px-2 mt-2">
-                <h2 class="text-xl font-bold text-gray-800">Today's Route</h2>
-                <p class="text-sm text-gray-500">Tap the circle when delivered.</p>
+            <div class="form-group">
+                <label>Flat / House Number</label>
+                <input type="text" id="flat" placeholder="e.g. F 401" required autocomplete="off">
             </div>
 
-            <!-- List Container -->
-            <div id="checklist-container" class="space-y-4">
-                <!-- Data will be injected here by JS -->
+            <div class="form-group">
+                <label>Milk Quantity (Optional)</label>
+                <input type="text" id="qty" placeholder="Customer batayega ya fix likho (e.g. 1.5L)">
             </div>
-        </div>
 
-        <!-- ============================================== -->
-        <!-- VIEW 2: ADD CUSTOMER FORM                      -->
-        <!-- ============================================== -->
-        <div id="view-add" class="max-w-md mx-auto p-4 w-full">
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-6">
-                <h2 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2">Add New Customer</h2>
-                
-                <form id="add-form" class="space-y-5">
-                    
-                    <!-- Route -->
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Route Time</label>
-                        <select id="route-name" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 text-base font-bold focus:ring-2 focus:ring-blue-500 outline-none">
-                            <option value="Morning">🌅 Morning (सुबह)</option>
-                            <option value="Afternoon">☀️ Afternoon (दोपहर)</option>
-                            <option value="Evening">🌇 Evening (शाम)</option>
-                        </select>
-                    </div>
-
-                    <!-- Society -->
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Society Name</label>
-                        <div class="flex gap-2">
-                            <input type="text" id="society-name" placeholder="e.g. Sanidhya" class="flex-1 bg-gray-50 border border-gray-200 rounded-lg p-3 font-bold text-gray-800 focus:ring-2 focus:ring-blue-500 outline-none" required>
-                            <button type="button" onclick="clearSociety()" class="bg-blue-100 text-blue-700 font-bold px-4 rounded-lg border border-blue-200 hover:bg-blue-200 transition-colors flex items-center gap-1">
-                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                                New
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Flat Number (Big) -->
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Flat / House No.</label>
-                        <input type="text" id="flat-no" placeholder="e.g. K 204" class="w-full bg-blue-50 border-2 border-blue-300 rounded-xl p-4 text-2xl font-black text-blue-900 focus:ring-4 focus:ring-blue-500 outline-none" required>
-                    </div>
-
-                    <!-- Quantity -->
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Milk Quantity (Select or Type)</label>
-                        <input type="text" list="qty-options" id="quantity" placeholder="e.g. 1.5 L or Fix 2L" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 font-bold text-gray-800 focus:ring-2 focus:ring-blue-500 outline-none" required>
-                        <datalist id="qty-options">
-                            <option value="500 ml">
-                            <option value="1 L">
-                            <option value="1.5 L">
-                            <option value="2 L">
-                            <option value="2.5 L">
-                            <option value="3 L">
-                        </datalist>
-                    </div>
-
-                    <!-- Type & Method -->
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Milk Type</label>
-                            <input type="text" list="milk-type-options" id="milk-type" value="Regular" placeholder="Type or Select" class="w-full bg-orange-50 border border-orange-200 text-orange-900 rounded-lg p-3 text-sm focus:ring-2 focus:ring-orange-500 outline-none">
-                            <datalist id="milk-type-options">
-                                <option value="Regular (Bhains)">
-                                <option value="Gaay">
-                            </datalist>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Delivery Method</label>
-                            <input type="text" list="method-options" id="delivery-method" value="Tapeli" placeholder="Type or Select" class="w-full bg-blue-50 border border-blue-200 text-blue-900 rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
-                            <datalist id="method-options">
-                                <option value="Tapeli (Direct)">
-                                <option value="Theli">
-                                <option value="Upar thi theli">
-                            </datalist>
-                        </div>
-                    </div>
-
-                    <!-- Frequency (Checkboxes) -->
-                    <div class="bg-gray-50 p-3 rounded-lg border border-gray-200">
-                        <label class="block text-xs font-semibold text-gray-600 uppercase mb-2">Delivery Schedule</label>
-                        <div class="flex gap-4">
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="checkbox" id="freq-tomorrow" class="w-5 h-5 text-blue-600 rounded focus:ring-blue-500" checked>
-                                <span class="text-sm font-bold text-gray-700">Kal Dena Hai</span>
-                            </label>
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="checkbox" id="freq-dayafter" class="w-5 h-5 text-blue-600 rounded focus:ring-blue-500" checked>
-                                <span class="text-sm font-bold text-gray-700">Parso Dena Hai</span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <!-- Notes -->
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Special Notes (Optional)</label>
-                        <textarea id="notes" placeholder="e.g. Card ma entry, door bell nai bajana..." class="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none h-20 resize-none"></textarea>
-                    </div>
-
-                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl p-4 shadow-lg active:scale-95 transition-transform text-lg">
-                        Save Customer
-                    </button>
-                </form>
+            <div class="form-group">
+                <label>Milk Type & Method (Optional)</label>
+                <input type="text" id="milkType" list="milk-options" placeholder="Gaay, Bhains, Theli, Tapeli...">
+                <datalist id="milk-options">
+                    <option value="Direct Tapeli">
+                    <option value="Theli me parking me">
+                    <option value="Gaay ka dudh">
+                </datalist>
             </div>
-            <div class="h-10"></div>
-        </div>
 
-    </main>
-
-    <!-- Bottom Navigation -->
-    <nav class="bg-white border-t border-gray-200 fixed bottom-0 w-full z-20">
-        <div class="max-w-md mx-auto flex">
-            <button onclick="switchTab('add')" id="tab-add" class="flex-1 py-4 flex flex-col items-center justify-center tab-active transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                </svg>
-                <span class="text-xs font-bold uppercase tracking-wider">Add Entry</span>
-            </button>
-            <button onclick="switchTab('checklist')" id="tab-checklist" class="flex-1 py-4 flex flex-col items-center justify-center text-gray-500 transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                </svg>
-                <span class="text-xs font-bold uppercase tracking-wider">My Route</span>
-            </button>
-        </div>
-    </nav>
-
-    <!-- Message Modal (No alert allowed) -->
-    <div id="message-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
-        <div class="bg-white rounded-2xl p-6 m-4 max-w-sm w-full text-center shadow-2xl transform scale-95 transition-transform" id="modal-content">
-            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4" id="modal-icon-container">
-                <svg class="h-6 w-6 text-green-600" id="modal-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                </svg>
+            <div class="form-group checkbox-group">
+                <label><input type="checkbox" id="kal"> Kal Dena Hai</label>
+                <label><input type="checkbox" id="parso"> Parso Dena Hai</label>
             </div>
-            <h3 class="text-lg leading-6 font-bold text-gray-900 mb-2" id="modal-title">Success</h3>
-            <p class="text-sm text-gray-500 mb-6" id="modal-message">Customer added successfully.</p>
-            <button onclick="closeModal()" class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-sm px-4 py-3 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:text-sm">
-                OK
-            </button>
+
+            <div class="form-group">
+                <label>Special Note (Optional)</label>
+                <input type="text" id="note" placeholder="e.g. Baar theli latki hse...">
+            </div>
+
+            <button type="submit" class="btn-submit">Save Entry</button>
+        </form>
+    </div>
+
+    <!-- ROUTE VIEW -->
+    <div id="routeView" class="container">
+        <div class="form-group">
+            <select id="filterRoute" onchange="renderRoute()" style="font-weight: bold; font-size: 1.1rem;">
+                <option value="Morning">Morning Route</option>
+                <option value="Afternoon">Afternoon Route</option>
+                <option value="Evening">Evening Route</option>
+            </select>
         </div>
+        <div id="routeList"></div>
+    </div>
+
+    <!-- BOTTOM NAVIGATION -->
+    <div class="bottom-nav">
+        <div class="nav-item" id="navRoute" onclick="switchView('route')">My Route</div>
+        <div class="nav-item" id="navAdd" onclick="switchView('add')">Add Entry</div>
     </div>
 
     <script>
-        // State Management (Persistent using localStorage)
-        let customers = JSON.parse(localStorage.getItem('dairyCustomers')) || [];
-        let currentTab = 'checklist'; // Default tab
+        let customers = JSON.parse(localStorage.getItem('mmp_delivery_data')) || [];
 
-        // DOM Elements
-        const form = document.getElementById('add-form');
-        const viewAdd = document.getElementById('view-add');
-        const viewChecklist = document.getElementById('view-checklist');
-        const tabAdd = document.getElementById('tab-add');
-        const tabChecklist = document.getElementById('tab-checklist');
-        const checklistContainer = document.getElementById('checklist-container');
-        
-        const totalCountEl = document.getElementById('total-count');
-        const completedCountEl = document.getElementById('completed-count');
-        const flatInput = document.getElementById('flat-no');
-
-        // Modal Elements
-        const modal = document.getElementById('message-modal');
-        const modalTitle = document.getElementById('modal-title');
-        const modalMessage = document.getElementById('modal-message');
-
-        // Initialize App
-        function initApp() {
-            // If no customers exist, default to Add Entry screen
-            if (customers.length === 0) {
-                switchTab('add');
-            } else {
-                switchTab('checklist');
-            }
-            updateCounts();
-        }
-
-        // Save to localStorage
-        function saveToStorage() {
-            localStorage.setItem('dairyCustomers', JSON.stringify(customers));
-        }
-
-        // Switch between tabs
-        function switchTab(tab) {
-            currentTab = tab;
-            if (tab === 'add') {
-                viewAdd.classList.remove('hidden');
-                viewChecklist.classList.add('hidden');
-                
-                tabAdd.classList.add('tab-active');
-                tabAdd.classList.remove('text-gray-500');
-                
-                tabChecklist.classList.remove('tab-active');
-                tabChecklist.classList.add('text-gray-500');
-            } else {
-                viewAdd.classList.add('hidden');
-                viewChecklist.classList.remove('hidden');
-                
-                tabChecklist.classList.add('tab-active');
-                tabChecklist.classList.remove('text-gray-500');
-                
-                tabAdd.classList.remove('tab-active');
-                tabAdd.classList.add('text-gray-500');
-                
-                renderChecklist();
-            }
-        }
-
+        // Clear only society name
         function clearSociety() {
-            const socInput = document.getElementById('society-name');
+            const socInput = document.getElementById('society');
             socInput.value = '';
             socInput.focus();
         }
 
-        // Reset all deliveries for a new day/shift
-        function resetDeliveries() {
-            if(confirm("Kiya aap sach me sabhi ki delivery tick (Done) hantana chahte hai?")) {
-                customers.forEach(c => c.isDelivered = false);
-                saveToStorage();
-                updateCounts();
-                if(currentTab === 'checklist') renderChecklist();
-            }
-        }
-
-        // Show Modal message
-        function showModal(title, message) {
-            modalTitle.innerText = title;
-            modalMessage.innerText = message;
-            modal.classList.remove('hidden');
-            document.getElementById('modal-content').classList.replace('scale-95', 'scale-100');
-        }
-
-        function closeModal() {
-            document.getElementById('modal-content').classList.replace('scale-100', 'scale-95');
-            setTimeout(() => {
-                modal.classList.add('hidden');
-                // Focus back on flat input after closing modal for fast entry
-                if (currentTab === 'add') {
-                    flatInput.focus();
-                }
-            }, 150);
-        }
-
-        // Handle form submission
-        form.addEventListener('submit', function(e) {
+        // Form Submit
+        document.getElementById('addForm').addEventListener('submit', function(e) {
             e.preventDefault();
 
-            const newCustomer = {
-                id: Date.now().toString(),
-                route: document.getElementById('route-name').value,
-                society: document.getElementById('society-name').value.trim(),
-                flat: flatInput.value.trim(),
-                quantity: document.getElementById('quantity').value.trim(),
-                milkType: document.getElementById('milk-type').value.trim(),
-                deliveryMethod: document.getElementById('delivery-method').value.trim(),
-                tomorrow: document.getElementById('freq-tomorrow').checked,
-                dayAfter: document.getElementById('freq-dayafter').checked,
-                notes: document.getElementById('notes').value.trim(),
-                isDelivered: false,
-                timestamp: Date.now() // For sorting/keeping entry order
-            };
-
-            customers.push(newCustomer);
-            saveToStorage();
-            updateCounts();
-
-            // Clear ONLY specific fields for fast entry (keep route & society)
-            flatInput.value = '';
-            document.getElementById('notes').value = '';
+            const route = document.getElementById('route').value;
+            const society = document.getElementById('society').value;
+            const flat = document.getElementById('flat').value;
             
-            // Reset checkboxes to default (both checked)
-            document.getElementById('freq-tomorrow').checked = true;
-            document.getElementById('freq-dayafter').checked = true;
+            const newCustomer = {
 
-            showModal('Entry Added!', `${newCustomer.flat} has been saved.`);
-        });
-
-        // Toggle delivery status
-        window.toggleDelivery = function(id) {
-            const index = customers.findIndex(c => c.id === id);
-            if (index !== -1) {
-                customers[index].isDelivered = !customers[index].isDelivered;
-                saveToStorage();
-                updateCounts();
-                renderChecklist(); 
-            }
-        };
-
-        // Delete Entry
-        window.deleteCustomer = function(id, flatName) {
-            if(confirm(`Kya aap sach me ${flatName} ki entry delete karna chahte hai?`)) {
-                customers = customers.filter(c => c.id !== id);
-                saveToStorage();
-                updateCounts();
-                renderChecklist();
-            }
-        }
-
-        function updateCounts() {
-            totalCountEl.innerText = customers.length;
-            const completed = customers.filter(c => c.isDelivered).length;
-            completedCountEl.innerText = completed;
-        }
-
-        // Render the checklist UI
-        function renderChecklist() {
-            checklistContainer.innerHTML = '';
-
-            if (customers.length === 0) {
-                checklistContainer.innerHTML = `
-                    <div class="text-center py-12 text-gray-400">
-                        <svg class="mx-auto h-12 w-12 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                        </svg>
-                        <p>No deliveries added yet.</p>
-                        <p class="text-sm mt-1">Go to Add Entry to start.</p>
-                    </div>`;
-                return
