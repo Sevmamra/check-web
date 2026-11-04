@@ -13,6 +13,7 @@
             --card-bg: #ffffff;
             --border: #e5e7eb;
             --success: #10b981;
+            --danger: #ef4444;
         }
 
         * {
@@ -57,7 +58,7 @@
             font-weight: bold;
         }
 
-        input[type="text"], select {
+        input[type="text"], input[type="number"], select {
             width: 100%;
             padding: 12px;
             border: 1px solid var(--border);
@@ -153,7 +154,7 @@
         }
 
         .customer-card.done {
-            opacity: 0.4;
+            opacity: 0.5;
             background: #f9fafb;
         }
 
@@ -182,6 +183,29 @@
             margin-top: 4px;
         }
 
+        /* Naya Action Group jisme liter ka box aur tick button hai */
+        .action-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .daily-qty-input {
+            width: 70px;
+            padding: 10px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: bold;
+            background: #f8fafc;
+        }
+
+        .daily-qty-input:focus {
+            border-color: var(--primary);
+            outline: none;
+        }
+
         .btn-done {
             background-color: var(--success);
             color: white;
@@ -193,6 +217,40 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            cursor: pointer;
+        }
+
+        /* Total aur Reset Section */
+        .route-summary {
+            background: var(--card-bg);
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 8px;
+            border: 2px dashed var(--border);
+            text-align: center;
+        }
+
+        .total-text {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: var(--text-main);
+            margin-bottom: 15px;
+        }
+
+        #routeTotalDisplay {
+            color: var(--primary);
+            font-size: 1.5rem;
+        }
+
+        .btn-reset {
+            background-color: var(--danger);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            width: 100%;
+            font-size: 1.1rem;
+            font-weight: bold;
             cursor: pointer;
         }
 
@@ -258,19 +316,19 @@
             <div class="form-group">
                 <label>Society Name</label>
                 <div class="society-group">
-                    <input type="text" id="society" placeholder=" " required>
+                    <input type="text" id="society" placeholder="  " required>
                     <button type="button" class="btn-icon" onclick="clearSociety()">+</button>
                 </div>
             </div>
 
             <div class="form-group">
                 <label>Flat / House Number</label>
-                <input type="text" id="flat" placeholder="  " required autocomplete="off">
+                <input type="text" id="flat" placeholder=". " required autocomplete="off">
             </div>
 
             <div class="form-group">
                 <label>Milk Quantity (Optional)</label>
-                <input type="text" id="qty" placeholder="Customer batayega ya fix likho (e.g. 1.5L)" autocomplete="off">
+                <input type="text" id="qty" placeholder="Fix likho (e.g. 1.5L) varna khali chhodo" autocomplete="off">
             </div>
 
             <div class="form-group">
@@ -290,7 +348,7 @@
 
             <div class="form-group">
                 <label>Special Note (Optional)</label>
-                <input type="text" id="note" placeholder="e.g. 1 din chhod kar, baar theli latki hse..." autocomplete="off">
+                <input type="text" id="note" placeholder="e.g. 1 din chhod kar..." autocomplete="off">
             </div>
 
             <button type="submit" class="btn-submit">Save Entry</button>
@@ -355,13 +413,13 @@
                 kal: document.getElementById('kal').checked,
                 parso: document.getElementById('parso').checked,
                 note: document.getElementById('note').value.trim(),
-                status: 'pending'
+                status: 'pending',
+                dailyQty: '' // Naya variable daily entry save karne ke liye
             };
 
             customers.push(newCustomer);
             localStorage.setItem('mmp_delivery_data', JSON.stringify(customers));
 
-            // Sirf niche wale fields clear honge, Society retain rahegi
             document.getElementById('flat').value = '';
             document.getElementById('qty').value = '';
             document.getElementById('milkType').value = '';
@@ -372,10 +430,53 @@
             document.getElementById('flat').focus();
         });
 
+        // Daily doodh ki entry real-time save hogi
+        function updateDailyQty(id, val) {
+            const index = customers.findIndex(c => c.id === id);
+            if (index > -1) {
+                customers[index].dailyQty = val;
+                localStorage.setItem('mmp_delivery_data', JSON.stringify(customers));
+                updateTotal();
+            }
+        }
+
         function toggleStatus(id) {
             const index = customers.findIndex(c => c.id === id);
             if (index > -1) {
                 customers[index].status = customers[index].status === 'done' ? 'pending' : 'done';
+                localStorage.setItem('mmp_delivery_data', JSON.stringify(customers));
+                renderRoute();
+            }
+        }
+
+        // Total count calculate karega sirf 'done' status walo ka
+        function updateTotal() {
+            const currentRoute = document.getElementById('filterRoute').value;
+            const filtered = customers.filter(c => c.route === currentRoute);
+            let total = 0;
+            
+            filtered.forEach(c => {
+                if (c.status === 'done' && c.dailyQty) {
+                    let parsedVal = parseFloat(c.dailyQty);
+                    if (!isNaN(parsedVal)) {
+                        total += parsedVal;
+                    }
+                }
+            });
+
+            const totalDisplay = document.getElementById('routeTotalDisplay');
+            if (totalDisplay) {
+                totalDisplay.innerText = total + " Ltr";
+            }
+        }
+
+        // Din khatam hone par sab reset karne ka function (Customers delete nahi honge)
+        function closeDay() {
+            if (confirm("Kya aap sach me aaj ka din close karna chahte hain? Sabhi ✔ ticks aur daily liter entries kal ke liye clear ho jayengi.")) {
+                customers.forEach(c => {
+                    c.status = 'pending';
+                    c.dailyQty = ''; // Clear daily input
+                });
                 localStorage.setItem('mmp_delivery_data', JSON.stringify(customers));
                 renderRoute();
             }
@@ -405,7 +506,7 @@
                 grouped[society].forEach(c => {
                     const doneClass = c.status === 'done' ? 'done' : '';
                     let detailsArr = [];
-                    if (c.qty) detailsArr.push(c.qty);
+                    if (c.qty) detailsArr.push("Fix: " + c.qty);
                     if (c.milkType) detailsArr.push(c.milkType);
                     
                     let daysInfo = [];
@@ -415,18 +516,31 @@
 
                     html += `
                         <div class="customer-card ${doneClass}">
-                            <div>
+                            <div style="flex: 1; padding-right: 10px;">
                                 <div class="flat-no">${c.flat}</div>
                                 ${detailsArr.length > 0 ? `<div class="details">${detailsArr.join(' | ')}</div>` : ''}
                                 ${c.note ? `<div class="special-note">⚠️ ${c.note}</div>` : ''}
                             </div>
-                            <button class="btn-done" onclick="toggleStatus(${c.id})">✔</button>
+                            <div class="action-group">
+                                <input type="number" step="0.25" class="daily-qty-input" placeholder="Ltr" value="${c.dailyQty || ''}" oninput="updateDailyQty(${c.id}, this.value)">
+                                <button class="btn-done" onclick="toggleStatus(${c.id})">✔</button>
+                            </div>
                         </div>
                     `;
                 });
                 html += `</div>`;
             }
+
+            // Total section aur reset button HTML me add kiya hai
+            html += `
+                <div class="route-summary">
+                    <div class="total-text">Aaj Ka Total Delivery: <br><span id="routeTotalDisplay">0 Ltr</span></div>
+                    <button class="btn-reset" onclick="closeDay()">Close This Day (Reset Route)</button>
+                </div>
+            `;
+
             listDiv.innerHTML = html;
+            updateTotal(); // Naya render hone par bhi total update dikhega
         }
 
         function switchView(view) {
@@ -439,14 +553,12 @@
                 document.getElementById('addView').classList.add('active');
                 document.getElementById('navAdd').classList.add('active');
                 
-                // Form wapas aane par route update karo
                 const savedRoute = document.getElementById('filterRoute').value;
                 document.getElementById('route').value = savedRoute;
             } else {
                 document.getElementById('routeView').classList.add('active');
                 document.getElementById('navRoute').classList.add('active');
                 
-                // Route view par aate hi selected tab filterRoute mein set karo
                 const formRoute = document.getElementById('route').value;
                 document.getElementById('filterRoute').value = formRoute;
                 renderRoute();
@@ -456,5 +568,5 @@
         document.addEventListener("DOMContentLoaded", initApp);
     </script>
 </body>
-            </html>
-            
+    </html>
+                
